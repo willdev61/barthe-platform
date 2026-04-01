@@ -6,7 +6,7 @@ Entry point
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routers import auth, dossiers, analyses
+from app.routers import dossiers, analyses
 from app.routers import rapports
 
 app = FastAPI(
@@ -27,12 +27,16 @@ app.add_middleware(
 )
 
 # Routers
-app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(dossiers.router, prefix="/dossiers", tags=["Dossiers"])
 app.include_router(analyses.router, prefix="/analyses", tags=["Analyses"])
 app.include_router(rapports.router, prefix="/rapports", tags=["Rapports"])
 
 
-@app.get("/", tags=["Health"])
+@app.get("/health", tags=["Health"])
 async def health_check():
-    return {"status": "ok", "service": "BARTHE API", "version": "1.0.0"}
+    return {"status": "ok", "service": "barthe-api", "version": "1.0.0"}
+
+
+@app.get("/", tags=["Health"])
+async def root():
+    return {"message": "BARTHE API", "docs": "/docs", "health": "/health"}

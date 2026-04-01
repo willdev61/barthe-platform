@@ -1,60 +1,33 @@
-// ---- Auth lib — client-side session via cookie ----
+import { betterAuth } from "better-auth"
+import { Pool } from "pg"
+import { organization } from "better-auth/plugins"
+import { bearer } from "better-auth/plugins"
 
-import type { User } from './types'
-import { MOCK_USER } from './mock-data'
+export const auth = betterAuth({
+  database: new Pool({
+    connectionString: process.env.DATABASE_URL,
+  }),
+  emailAndPassword: {
+    enabled: true,
+    requireEmailVerification: false,
+  },
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 60 * 24, // 24h
+    },
+  },
+  plugins: [
+    organization({
+      allowUserToCreateOrganization: false,
+      membershipLimit: 50,
+    }),
+    bearer(),
+  ],
+  trustedOrigins: [
+    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    "http://localhost:8000",
+  ],
+})
 
-const SESSION_KEY = 'barthe_session'
-
-export interface Session {
-  user: User
-  token: string
-  expires_at: string
-}
-
-export function getSession(): Session | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = localStorage.getItem(SESSION_KEY)
-    if (!raw) return null
-    const session: Session = JSON.parse(raw)
-    if (new Date(session.expires_at) < new Date()) {
-      localStorage.removeItem(SESSION_KEY)
-      return null
-    }
-    return session
-  } catch {
-    return null
-  }
-}
-
-export function setSession(session: Session): void {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(session))
-}
-
-export function clearSession(): void {
-  localStorage.removeItem(SESSION_KEY)
-}
-
-export async function loginMock(
-  email: string,
-  _password: string
-): Promise<Session> {
-  // Simulate network delay
-  await new Promise((r) => setTimeout(r, 800))
-  if (!email.includes('@')) {
-    throw new Error('Email ou mot de passe incorrect')
-  }
-  const expires = new Date()
-  expires.setHours(expires.getHours() + 24)
-  const session: Session = {
-    user: { ...MOCK_USER, email },
-    token: 'mock-jwt-token-' + Date.now(),
-    expires_at: expires.toISOString(),
-  }
-  setSession(session)
-  return session
-}
-
-export async function logout(): Promise<void> {
-  clearSession()
-}
+export type Auth = typeof auth

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MOCK_USER, MOCK_INSTITUTION } from '@/lib/mock-data'
-import { logout } from '@/lib/auth'
+import { signOut } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 
 const navItems = [
@@ -39,7 +39,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   const router = useRouter()
 
   const handleLogout = async () => {
-    await logout()
+    await signOut()
     router.push('/login')
   }
 

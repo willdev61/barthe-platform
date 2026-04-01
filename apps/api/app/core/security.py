@@ -1,31 +1,40 @@
 """
-Security — JWT + bcrypt — Python 3.13
+Security — Validation tokens BetterAuth via PostgreSQL
+FastAPI ne gère plus l'auth, il valide juste les sessions BetterAuth
 """
+from typing import Optional
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
+from fastapi import HTTPException, Depends, Header
+from app.core.database import get_db
 
-from datetime import datetime, timedelta, timezone
-from typing import Any
-import bcrypt
-import jwt
-from app.core.config import settings
+async def get_current_user(
+    authorization: Optional[str] = Header(None),
+    db: AsyncSession = Depends(get_db)
+) -> dict:
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Token manquant")
 
+    token = authorization.replace("Bearer ", "")
 
-def hash_password(password: str) -> str:
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode(), salt).decode()
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
-
-
-def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (
-        expires_delta or timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
+    result = await db.execute(
+        text("""
+            SELECT s.id, s."userId", s."expiresAt", u.email, u.name, u.role
+            FROM session s
+            JOIN "user" u ON u.id = s."userId"
+            WHERE s.token = :token
+              AND s."expiresAt" > NOW()
+        """),
+        {"token": token}
     )
-    to_encode["exp"] = expire
-    return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+    session = result.fetchone()
 
+    if not session:
+        raise HTTPException(status_code=401, detail="Session invalide ou expirée")
 
-def decode_access_token(token: str) -> dict[str, Any]:
-    return jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+    return {
+        "user_id": session.userId,
+        "email": session.email,
+        "name": session.name,
+        "role": session.role,
+    }

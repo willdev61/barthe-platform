@@ -18,7 +18,10 @@
     "docker:logs": "docker compose -f docker-compose.dev.yml logs -f",
     "docker:db": "docker compose -f docker-compose.dev.yml up db -d",
     "docker:migrate": "docker compose -f docker-compose.dev.yml exec api uv run alembic upgrade head",
-    "docker:reset": "docker compose down -v && docker compose up --build"
+    "docker:reset": "docker compose down -v && docker compose up --build",
+    "docker:seed": "docker compose -f docker-compose.dev.yml exec api python scripts/seed.py",
+    "docker:psql": "docker compose -f docker-compose.dev.yml exec db psql -U barthe -d barthe",
+    "seed:auth": "cd apps/web && pnpm seed:auth"
   },
   "devDependencies": {
     "turbo": "latest",
