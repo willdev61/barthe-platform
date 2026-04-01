@@ -1,0 +1,21 @@
+{
+  "name": "barthe",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "check-types": "turbo check-types",
+    "dev:web": "turbo dev --filter=web",
+    "dev:api": "cd apps/api && uvicorn main:app --reload --port 8000",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "install:api": "cd apps/api && pip install -r requirements.txt"
+  },
+  "devDependencies": {
+    "turbo": "latest",
+    "prettier": "latest",
+    "typescript": "latest"
+  },
+  "packageManager": "pnpm@10.28.0"
+}

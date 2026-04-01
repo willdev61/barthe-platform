@@ -1,0 +1,13 @@
+{
+  "name": "@barthe/types",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "devDependencies": {
+    "typescript": "latest"
+  }
+}
