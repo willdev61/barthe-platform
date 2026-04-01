@@ -13,11 +13,6 @@ const nextConfig = {
         destination: '/login',
         permanent: false,
       },
-      {
-        source: '/dossiers',
-        destination: '/dashboard',
-        permanent: false,
-      },
     ]
   },
 }
