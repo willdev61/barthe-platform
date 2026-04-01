@@ -4,13 +4,21 @@
   "private": true,
   "scripts": {
     "dev": "turbo dev",
+    "dev:web": "turbo dev --filter=web",
+    "dev:api": "cd apps/api && uvicorn main:app --reload --port 8000",
     "build": "turbo build",
     "lint": "turbo lint",
     "check-types": "turbo check-types",
-    "dev:web": "turbo dev --filter=web",
-    "dev:api": "cd apps/api && uvicorn main:app --reload --port 8000",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "install:api": "cd apps/api && pip install -r requirements.txt"
+    "install:api": "cd apps/api && pip install -r requirements.txt",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up --build",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
+    "docker:logs": "docker compose -f docker-compose.dev.yml logs -f",
+    "docker:db": "docker compose -f docker-compose.dev.yml up db -d",
+    "docker:migrate": "docker compose -f docker-compose.dev.yml exec api uv run alembic upgrade head",
+    "docker:reset": "docker compose down -v && docker compose up --build"
   },
   "devDependencies": {
     "turbo": "latest",

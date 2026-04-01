@@ -65,6 +65,51 @@ cp apps/api/.env.example apps/api/.env
 
 ---
 
+## Docker
+
+### Développement recommandé (DB + API dockerisées, Next.js en local)
+
+```bash
+# Lancer DB + API en Docker
+pnpm docker:dev
+
+# Dans un autre terminal — lancer Next.js en local
+pnpm dev:web
+```
+
+### Tout en Docker
+
+```bash
+pnpm docker:up
+```
+
+### Commandes utiles
+
+```bash
+# Appliquer les migrations Alembic
+pnpm docker:migrate
+
+# Voir les logs en temps réel
+pnpm docker:logs
+
+# Arrêter tout
+pnpm docker:down
+
+# Reset complet (supprime les volumes)
+pnpm docker:reset
+```
+
+### Accès
+
+| Service    | URL                          |
+|------------|------------------------------|
+| Frontend   | http://localhost:3000        |
+| API        | http://localhost:8000        |
+| Swagger    | http://localhost:8000/docs   |
+| PostgreSQL | localhost:5432               |
+
+---
+
 ## Développement
 
 ```bash

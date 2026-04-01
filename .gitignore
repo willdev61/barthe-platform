@@ -25,6 +25,10 @@ __pycache__/
 .venv/
 apps/api/.env
 
+# Docker volumes
+postgres_data/
+api_uploads/
+
 # OS
 .DS_Store
 
