@@ -12,6 +12,7 @@ import {
   Building2,
   History,
   Settings,
+  GitCompareArrows,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MOCK_USER, MOCK_INSTITUTION } from '@/lib/mock-data'
@@ -33,6 +34,11 @@ const navItems = [
     label: 'Dossiers',
     href: '/dossiers',
     icon: FolderOpen,
+  },
+  {
+    label: 'Comparatif',
+    href: '/comparatif',
+    icon: GitCompareArrows,
   },
   {
     label: 'Historique',

@@ -7,16 +7,51 @@ import uuid
 from pathlib import Path
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from pydantic import BaseModel, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.database import get_db
 from app.core.config import settings
 from app.core.audit import log_action
-from app.models.models import Dossier, User
+from app.models.models import Dossier, Analyse, User
 from app.schemas.schemas import DossierCreate, DossierResponse
 
 ALLOWED_EXTENSIONS = {".pdf", ".xlsx", ".xls", ".csv"}
+
+
+class ComparatifRequest(BaseModel):
+    dossier_ids: list[str]
+
+    @field_validator("dossier_ids")
+    @classmethod
+    def validate_ids(cls, v: list[str]) -> list[str]:
+        if not v or len(v) > 5:
+            raise ValueError("Entre 1 et 5 dossiers requis")
+        return v
+
+
+# Mock comparatif data (mirrors MOCK_ANALYSES in analyses.py)
+MOCK_COMPARATIF: dict[str, dict] = {
+    "dos-001": {
+        "id": "dos-001", "nom_projet": "Agro-Export Abidjan SARL", "secteur": "Agriculture",
+        "score": 82, "ca": 850000000, "ebitda": 230000000, "dette": 580000000,
+        "ratios": {"marge_brute": 27.1, "taux_ebitda": 27.1, "levier_financier": 2.52,
+                   "dscr": 1.57, "ratio_endettement": 68.2},
+    },
+    "dos-002": {
+        "id": "dos-002", "nom_projet": "TechServices Dakar SAS", "secteur": "Services numériques",
+        "score": 61, "ca": 420000000, "ebitda": 80000000, "dette": 290000000,
+        "ratios": {"marge_brute": 19.0, "taux_ebitda": 19.0, "levier_financier": 3.63,
+                   "dscr": 1.84, "ratio_endettement": 69.0},
+    },
+    "dos-003": {
+        "id": "dos-003", "nom_projet": "Boulangerie Moderne Ouaga", "secteur": "Agroalimentaire",
+        "score": 38, "ca": 180000000, "ebitda": 5000000, "dette": 120000000,
+        "ratios": {"marge_brute": 2.8, "taux_ebitda": 2.8, "levier_financier": 24.0,
+                   "dscr": 0.28, "ratio_endettement": 66.7},
+    },
+}
 
 router = APIRouter()
 
@@ -120,6 +155,67 @@ async def create_dossier(
         metadata={"nom_projet": dossier.nom_projet, "secteur": dossier.secteur},
     )
     return {"id": str(dossier.id), "nom_projet": dossier.nom_projet, "statut": dossier.statut}
+
+
+@router.post("/comparatif")
+async def comparatif_dossiers(body: ComparatifRequest, db: AsyncSession = Depends(get_db)):
+    """Return normalised financial data for up to 5 dossiers for side-by-side comparison."""
+    if settings.USE_MOCK:
+        items = []
+        for did in body.dossier_ids:
+            entry = MOCK_COMPARATIF.get(did)
+            if entry:
+                items.append(entry)
+            else:
+                # Fallback for unknown mock IDs
+                items.append({
+                    "id": did, "nom_projet": "Dossier inconnu", "secteur": None,
+                    "score": None, "ca": None, "ebitda": None, "dette": None,
+                    "ratios": {"marge_brute": None, "taux_ebitda": None,
+                               "levier_financier": None, "dscr": None, "ratio_endettement": None},
+                })
+        return items
+
+    # Real path — fetch dossiers + their analyses
+    results = await db.execute(
+        select(Dossier).where(Dossier.id.in_([uuid.UUID(i) for i in body.dossier_ids]))
+    )
+    dossiers = results.scalars().all()
+    if not dossiers:
+        raise HTTPException(status_code=404, detail="Aucun dossier trouvé")
+
+    # Verify all belong to the same institution (use first dossier's institution)
+    institution_id = dossiers[0].institution_id
+    if any(d.institution_id != institution_id for d in dossiers):
+        raise HTTPException(status_code=403, detail="Les dossiers doivent appartenir à la même institution")
+
+    analyses_result = await db.execute(
+        select(Analyse).where(Analyse.dossier_id.in_([d.id for d in dossiers]))
+    )
+    analyses_by_dossier = {str(a.dossier_id): a for a in analyses_result.scalars().all()}
+
+    items = []
+    for d in dossiers:
+        analyse = analyses_by_dossier.get(str(d.id))
+        dn = analyse.donnees_normalisees if analyse else {}
+        ratios = analyse.ratios if analyse else {}
+        items.append({
+            "id": str(d.id),
+            "nom_projet": d.nom_projet,
+            "secteur": d.secteur,
+            "score": d.score,
+            "ca": dn.get("chiffre_affaires"),
+            "ebitda": dn.get("ebitda"),
+            "dette": dn.get("dette_financiere"),
+            "ratios": {
+                "marge_brute": ratios.get("marge_brute", {}).get("valeur"),
+                "taux_ebitda": ratios.get("taux_ebitda", {}).get("valeur"),
+                "levier_financier": ratios.get("levier_financier", {}).get("valeur"),
+                "dscr": ratios.get("dscr", {}).get("valeur"),
+                "ratio_endettement": ratios.get("ratio_endettement", {}).get("valeur"),
+            },
+        })
+    return items
 
 
 @router.get("/{dossier_id}")

@@ -1,6 +1,6 @@
 // ---- API client — mock mode (USE_MOCK=true) ----
 
-import type { Dossier, DossierComplet, Analyse, AuditLog, AuditLogsResponse, Institution, InstitutionSettings } from './types'
+import type { Dossier, DossierComplet, Analyse, AuditLog, AuditLogsResponse, Institution, InstitutionSettings, ComparatifItem } from './types'
 import {
   MOCK_DOSSIERS,
   MOCK_ANALYSES,
@@ -70,6 +70,44 @@ export async function deleteDossier(id: string): Promise<void> {
   }
   const res = await fetch(`/api/dossiers/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Erreur lors de la suppression du dossier')
+}
+
+// ---- Comparatif ----
+
+const MOCK_COMPARATIF: Record<string, ComparatifItem> = {
+  'dos-001': {
+    id: 'dos-001', nom_projet: 'Agro-Export Abidjan SARL', secteur: 'Agriculture',
+    score: 82, ca: 850000000, ebitda: 230000000, dette: 580000000,
+    ratios: { marge_brute: 27.1, taux_ebitda: 27.1, levier_financier: 2.52, dscr: 1.57, ratio_endettement: 68.2 },
+  },
+  'dos-002': {
+    id: 'dos-002', nom_projet: 'TechServices Dakar SAS', secteur: 'Services numériques',
+    score: 61, ca: 420000000, ebitda: 80000000, dette: 290000000,
+    ratios: { marge_brute: 19.0, taux_ebitda: 19.0, levier_financier: 3.63, dscr: 1.84, ratio_endettement: 69.0 },
+  },
+  'dos-003': {
+    id: 'dos-003', nom_projet: 'Boulangerie Moderne Ouaga', secteur: 'Agroalimentaire',
+    score: 38, ca: 180000000, ebitda: 5000000, dette: 120000000,
+    ratios: { marge_brute: 2.8, taux_ebitda: 2.8, levier_financier: 24.0, dscr: 0.28, ratio_endettement: 66.7 },
+  },
+}
+
+export async function getComparatif(ids: string[]): Promise<ComparatifItem[]> {
+  if (USE_MOCK) {
+    await new Promise((r) => setTimeout(r, 500))
+    return ids.map((id) => MOCK_COMPARATIF[id] ?? {
+      id, nom_projet: 'Dossier inconnu', secteur: null,
+      score: null, ca: null, ebitda: null, dette: null,
+      ratios: { marge_brute: null, taux_ebitda: null, levier_financier: null, dscr: null, ratio_endettement: null },
+    })
+  }
+  const res = await fetch('/api/dossiers/comparatif', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dossier_ids: ids }),
+  })
+  if (!res.ok) throw new Error('Erreur lors du chargement du comparatif')
+  return res.json()
 }
 
 // ---- Analyses ----

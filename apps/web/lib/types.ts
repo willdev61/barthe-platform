@@ -103,6 +103,23 @@ export interface DossierComplet extends Dossier {
   rapports?: Rapport[]
 }
 
+export interface ComparatifItem {
+  id: string
+  nom_projet: string
+  secteur: string | null
+  score: number | null
+  ca: number | null
+  ebitda: number | null
+  dette: number | null
+  ratios: {
+    marge_brute: number | null
+    taux_ebitda: number | null
+    levier_financier: number | null
+    dscr: number | null
+    ratio_endettement: number | null
+  }
+}
+
 export interface AuditLog {
   id: string
   user_id: string | null
