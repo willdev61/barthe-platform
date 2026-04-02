@@ -4,6 +4,7 @@ FastAPI Dossiers Router
 
 import os
 import uuid
+from pathlib import Path
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +15,8 @@ from app.core.config import settings
 from app.core.audit import log_action
 from app.models.models import Dossier, User
 from app.schemas.schemas import DossierCreate, DossierResponse
+
+ALLOWED_EXTENSIONS = {".pdf", ".xlsx", ".xls", ".csv"}
 
 router = APIRouter()
 
@@ -144,3 +147,51 @@ async def delete_dossier(dossier_id: str, db: AsyncSession = Depends(get_db)):
     if not dossier:
         raise HTTPException(status_code=404, detail="Dossier introuvable")
     await db.delete(dossier)
+
+
+@router.post("/{dossier_id}/upload")
+async def upload_fichier(
+    dossier_id: str,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+):
+    """Upload a Business Plan file (PDF, Excel or CSV) and attach it to a dossier."""
+    file_ext = Path(file.filename).suffix.lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Format de fichier non supporté. Formats acceptés : {', '.join(ALLOWED_EXTENSIONS)}",
+        )
+
+    if settings.USE_MOCK:
+        return {
+            "dossier_id": dossier_id,
+            "fichier_nom": file.filename,
+            "fichier_url": f"/uploads/{dossier_id}{file_ext}",
+        }
+
+    result = await db.execute(select(Dossier).where(Dossier.id == uuid.UUID(dossier_id)))
+    dossier = result.scalar_one_or_none()
+    if not dossier:
+        raise HTTPException(status_code=404, detail="Dossier introuvable")
+
+    upload_dir = os.path.join(settings.STORAGE_PATH, "dossiers")
+    os.makedirs(upload_dir, exist_ok=True)
+
+    filename = f"{dossier_id}{file_ext}"
+    file_path = os.path.join(upload_dir, filename)
+
+    contents = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(contents)
+
+    fichier_url = f"/uploads/dossiers/{filename}"
+    dossier.fichier_nom = file.filename
+    dossier.fichier_url = fichier_url
+    await db.flush()
+
+    return {
+        "dossier_id": dossier_id,
+        "fichier_nom": file.filename,
+        "fichier_url": fichier_url,
+    }

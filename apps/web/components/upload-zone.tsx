@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, FileSpreadsheet, X } from 'lucide-react'
+import { Upload, FileSpreadsheet, FileText, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface UploadZoneProps {
@@ -30,6 +30,7 @@ export function UploadZone({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
+      'application/pdf': ['.pdf'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': [
         '.xlsx',
       ],
@@ -40,12 +41,18 @@ export function UploadZone({
     disabled,
   })
 
+  const isPdf = selectedFile?.name.toLowerCase().endsWith('.pdf')
+
   if (selectedFile) {
     return (
       <div className="flex items-center justify-between p-4 bg-score-favorable-bg border border-score-favorable/30 rounded-xl">
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-10 h-10 bg-score-favorable/10 rounded-lg shrink-0">
-            <FileSpreadsheet className="w-5 h-5 text-score-favorable" />
+            {isPdf ? (
+              <FileText className="w-5 h-5 text-score-favorable" />
+            ) : (
+              <FileSpreadsheet className="w-5 h-5 text-score-favorable" />
+            )}
           </div>
           <div>
             <p className="text-sm font-semibold text-score-favorable truncate max-w-xs">
@@ -104,7 +111,7 @@ export function UploadZone({
               : 'Glissez votre Business Plan'}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Excel (.xlsx, .xls) ou CSV — taille max 10 Mo
+            PDF, Excel (.xlsx, .xls) ou CSV — taille max 10 Mo
           </p>
         </div>
         <span className="text-xs text-primary font-medium underline underline-offset-2">

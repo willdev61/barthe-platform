@@ -38,7 +38,7 @@ Si un champ est introuvable, mets null. Montants en entiers sans symboles.
 
 
 def read_file_content(file_url: str) -> str:
-    """Read Excel/CSV file from disk and return as plain text for LLM."""
+    """Read Excel, CSV or PDF file from disk and return as plain text for LLM."""
     import os
     filepath = file_url.lstrip("/")
     if not os.path.exists(filepath):
@@ -62,6 +62,12 @@ def read_file_content(file_url: str) -> str:
     elif ext == ".csv":
         with open(filepath, encoding="utf-8", errors="replace") as f:
             return f.read(16000)
+    elif ext == ".pdf":
+        from app.services.pdf_parser import extract_pdf_content
+        try:
+            return extract_pdf_content(filepath)
+        except Exception as e:
+            return f"[Erreur lecture PDF: {e}]"
     return "[Format non supporté]"
 
 
