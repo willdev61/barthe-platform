@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Institution {
+  id               String    @id @default(cuid())
+  nom              String
+  email_admin      String    @unique
+  pays             String
+  secteurs_cibles  String?
+  abonnement_statut String   @default("trial")
+  created_at       DateTime  @default(now())
+  settings         Json?
+  dossiers         Dossier[]
+  users            User[]
+  audit_logs       AuditLog[]
+}
+
+model User {
+  id             String      @id @default(cuid())
+  institution_id String
+  nom            String
+  email          String      @unique
+  role           String      @default("analyste")
+  last_login     DateTime?
+  created_at     DateTime    @default(now())
+  institution    Institution @relation(fields: [institution_id], references: [id])
+}
+
+model Dossier {
+  id             String      @id @default(cuid())
+  institution_id String
+  created_by     String
+  nom_projet     String
+  secteur        String?
+  fichier_nom    String?
+  fichier_url    String?
+  statut         String      @default("en_attente")
+  score          Int?
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @updatedAt
+  institution    Institution @relation(fields: [institution_id], references: [id])
+  analyse        Analyse?
+  rapports       Rapport[]
+}
+
+model Analyse {
+  id                  String   @id @default(cuid())
+  dossier_id          String   @unique
+  donnees_normalisees Json
+  ratios              Json
+  alertes             Json
+  synthese_narrative  String?
+  modele_llm          String
+  tokens_utilises     Int?
+  created_at          DateTime @default(now())
+  dossier             Dossier  @relation(fields: [dossier_id], references: [id])
+}
+
+model Rapport {
+  id         String   @id @default(cuid())
+  dossier_id String
+  genere_par String
+  pdf_url    String
+  created_at DateTime @default(now())
+  dossier    Dossier  @relation(fields: [dossier_id], references: [id])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  user_id        String?
+  institution_id String?
+  action         String
+  entity_type    String
+  entity_id      String?
+  metadata       Json         @default("{}")
+  ip_address     String?
+  created_at     DateTime     @default(now())
+  institution    Institution? @relation(fields: [institution_id], references: [id])
+}
