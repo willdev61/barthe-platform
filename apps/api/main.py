@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.routers import dossiers, analyses
 from app.routers import rapports, audit, institutions, admin
+from app.routers import api_keys, public
 
 app = FastAPI(
     title="BARTHE API",
@@ -33,6 +34,8 @@ app.include_router(rapports.router, prefix="/rapports", tags=["Rapports"])
 app.include_router(audit.router, prefix="/audit", tags=["Audit"])
 app.include_router(institutions.router, prefix="/institutions", tags=["Institutions"])
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
+app.include_router(api_keys.router, prefix="/api-keys", tags=["API Keys"])
+app.include_router(public.router, prefix="/public/v1", tags=["Public API"])
 
 
 @app.get("/health", tags=["Health"])

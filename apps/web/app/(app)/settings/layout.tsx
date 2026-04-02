@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 const TABS = [
   { href: '/settings', label: 'Institution' },
   { href: '/settings/equipe', label: 'Équipe' },
+  { href: '/settings/api-keys', label: 'Clés API' },
 ]
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {

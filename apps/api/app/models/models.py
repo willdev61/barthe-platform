@@ -5,7 +5,7 @@ SQLAlchemy 2.x models
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
-from sqlalchemy import String, Text, SmallInteger, Integer, ForeignKey, DateTime, JSON
+from sqlalchemy import String, Text, SmallInteger, Integer, ForeignKey, DateTime, JSON, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from app.core.database import Base
@@ -61,7 +61,8 @@ class Dossier(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     institution_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("institutions.id", ondelete="CASCADE"))
-    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    created_by: Mapped[Optional[uuid.UUID]] = mapped_column(ForeignKey("users.id"), nullable=True)
+    api_key_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
     nom_projet: Mapped[str] = mapped_column(String(300), nullable=False)
     secteur: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     fichier_nom: Mapped[Optional[str]] = mapped_column(String(300), nullable=True)
@@ -103,6 +104,22 @@ class Rapport(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
 
     dossier: Mapped["Dossier"] = relationship("Dossier", back_populates="rapports")
+
+
+class ApiKey(Base):
+    __tablename__ = "api_keys"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    institution_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("institutions.id", ondelete="CASCADE"))
+    nom: Mapped[str] = mapped_column(String(200), nullable=False)
+    key_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    permissions: Mapped[list] = mapped_column(JSONB, default=lambda: ["analyses:read", "analyses:write", "dossiers:read"])
+    last_used_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
+
+    institution: Mapped["Institution"] = relationship("Institution")
 
 
 class AuditLog(Base):
