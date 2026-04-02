@@ -93,3 +93,18 @@ class AnalyseResponse(BaseModel):
     modele_llm: str
     tokens_utilises: Optional[int]
     created_at: datetime
+
+
+# ---- Institution settings ----
+
+class ScoringThresholds(BaseModel):
+    ebitda_min: float = 20.0
+    levier_max: float = 3.0
+    dscr_min: float = 1.2
+
+
+class InstitutionSettings(BaseModel):
+    scoring_thresholds: ScoringThresholds = ScoringThresholds()
+    secteurs_actifs: list[str] = []
+    rapport_logo_url: Optional[str] = None
+    rapport_mentions: str = "Document confidentiel"

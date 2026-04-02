@@ -10,6 +10,8 @@ import {
   BarChart3,
   ChevronRight,
   Building2,
+  History,
+  Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MOCK_USER, MOCK_INSTITUTION } from '@/lib/mock-data'
@@ -31,6 +33,16 @@ const navItems = [
     label: 'Dossiers',
     href: '/dossiers',
     icon: FolderOpen,
+  },
+  {
+    label: 'Historique',
+    href: '/historique',
+    icon: History,
+  },
+  {
+    label: 'Paramètres',
+    href: '/settings',
+    icon: Settings,
   },
 ]
 
@@ -79,7 +91,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
-            (item.href === '/dossiers' && pathname.startsWith('/dossiers'))
+            (item.href !== '/' && pathname.startsWith(item.href))
           const Icon = item.icon
 
           return (

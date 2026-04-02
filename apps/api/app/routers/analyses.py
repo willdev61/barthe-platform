@@ -9,7 +9,8 @@ from sqlalchemy import select
 
 from app.core.database import get_db
 from app.core.config import settings
-from app.models.models import Dossier, Analyse
+from app.core.audit import log_action
+from app.models.models import Dossier, Analyse, Institution
 from app.schemas.schemas import AnalyseResponse
 from app.services.llm_normalizer import normalize_with_llm
 from app.services.ratio_engine import compute_ratios, compute_score, build_alertes_from_llm
@@ -130,6 +131,12 @@ async def run_analyse(dossier_id: str, db: AsyncSession = Depends(get_db)):
     if not dossier.fichier_url:
         raise HTTPException(status_code=400, detail="Aucun fichier associé à ce dossier")
 
+    # Load institution settings for custom thresholds
+    inst_result = await db.execute(select(Institution).where(Institution.id == dossier.institution_id))
+    institution = inst_result.scalar_one_or_none()
+    inst_settings = institution.inst_settings if institution else {}
+    thresholds = (inst_settings or {}).get("scoring_thresholds", {})
+
     # Update status
     dossier.statut = "en_cours"
     await db.flush()
@@ -138,14 +145,14 @@ async def run_analyse(dossier_id: str, db: AsyncSession = Depends(get_db)):
         # 1. Normalize data via LLM
         normalized, llm_alertes, tokens_used = await normalize_with_llm(dossier.fichier_url)
 
-        # 2. Compute ratios
-        ratios = compute_ratios(normalized)
+        # 2. Compute ratios with institution thresholds
+        ratios = compute_ratios(normalized, thresholds)
 
         # 3. Build structured alerts
         alertes = build_alertes_from_llm(llm_alertes)
 
-        # 4. Compute score
-        score = compute_score(ratios, alertes)
+        # 4. Compute score with institution thresholds
+        score = compute_score(ratios, alertes, thresholds)
 
         # 5. Persist analyse
         analyse_row = Analyse(
@@ -162,6 +169,15 @@ async def run_analyse(dossier_id: str, db: AsyncSession = Depends(get_db)):
         dossier.secteur = normalized.secteur
         dossier.statut = "analyse"
         await db.flush()
+        await log_action(
+            db,
+            user_id=None,
+            institution_id=str(dossier.institution_id),
+            action="analyse.run",
+            entity_type="analyse",
+            entity_id=str(analyse_row.id),
+            metadata={"dossier_id": dossier_id, "score": score, "tokens": tokens_used},
+        )
 
         return {
             "id": str(analyse_row.id),

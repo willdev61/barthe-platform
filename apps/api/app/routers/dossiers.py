@@ -11,6 +11,7 @@ from sqlalchemy import select
 
 from app.core.database import get_db
 from app.core.config import settings
+from app.core.audit import log_action
 from app.models.models import Dossier, User
 from app.schemas.schemas import DossierCreate, DossierResponse
 
@@ -106,6 +107,15 @@ async def create_dossier(
     )
     db.add(dossier)
     await db.flush()
+    await log_action(
+        db,
+        user_id=None,
+        institution_id=str(dossier.institution_id),
+        action="dossier.created",
+        entity_type="dossier",
+        entity_id=str(dossier.id),
+        metadata={"nom_projet": dossier.nom_projet, "secteur": dossier.secteur},
+    )
     return {"id": str(dossier.id), "nom_projet": dossier.nom_projet, "statut": dossier.statut}
 
 

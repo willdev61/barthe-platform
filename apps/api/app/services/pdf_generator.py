@@ -7,10 +7,7 @@ Falls back to a simple HTML string if reportlab is unavailable.
 import os
 import uuid
 from datetime import datetime
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    pass
+from typing import Optional
 
 
 def _format_currency(value: int | None) -> str:
@@ -30,6 +27,8 @@ async def generate_pdf(
     analyse: dict,
     institution_nom: str,
     output_dir: str = "./uploads",
+    logo_path: Optional[str] = None,
+    rapport_mentions: Optional[str] = None,
 ) -> str:
     """
     Generate a PDF report for a dossier analysis.
@@ -100,6 +99,14 @@ async def generate_pdf(
         now_str = datetime.now().strftime("%d/%m/%Y à %H:%M")
 
         # ---- Header ----
+        if logo_path and os.path.isfile(logo_path):
+            try:
+                from reportlab.platypus import Image as RLImage
+                logo_img = RLImage(logo_path, width=3 * cm, height=1.5 * cm, kind="proportional")
+                story.append(logo_img)
+                story.append(Spacer(1, 6))
+            except Exception:
+                pass  # skip logo if image cannot be loaded
         story.append(Paragraph("BARTHE", title_style))
         story.append(Paragraph("Rapport d'Analyse de Business Plan", subtitle_style))
         story.append(Paragraph(f"Institution : {institution_nom}", body_style))
@@ -228,9 +235,10 @@ async def generate_pdf(
         story.append(Spacer(1, 24))
         story.append(HRFlowable(width="100%", thickness=0.5, color=BORDER))
         story.append(Spacer(1, 6))
+        footer_text = rapport_mentions or "Document confidentiel · Usage interne uniquement"
         story.append(
             Paragraph(
-                "Généré par BARTHE — Document confidentiel · Usage interne uniquement",
+                f"Généré par BARTHE — {footer_text}",
                 ParagraphStyle("footer", parent=styles["Normal"], fontSize=8,
                                textColor=colors.HexColor("#9CA3AF"), alignment=1),
             )

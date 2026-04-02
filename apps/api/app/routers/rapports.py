@@ -7,9 +7,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+import os
 from app.core.database import get_db
 from app.core.config import settings
-from app.models.models import Dossier, Analyse, Rapport
+from app.core.audit import log_action
+from app.models.models import Dossier, Analyse, Rapport, Institution
 from app.services.pdf_generator import generate_pdf
 
 router = APIRouter()
@@ -45,6 +47,19 @@ async def create_rapport(dossier_id: str, db: AsyncSession = Depends(get_db)):
     if not analyse:
         raise HTTPException(status_code=404, detail="Analyse introuvable pour ce dossier")
 
+    # Load institution settings for logo and mentions
+    inst_result = await db.execute(select(Institution).where(Institution.id == dossier.institution_id))
+    institution = inst_result.scalar_one_or_none()
+    inst_settings = (institution.inst_settings if institution else {}) or {}
+    institution_nom = institution.nom if institution else "Institution"
+
+    logo_url = inst_settings.get("rapport_logo_url")
+    logo_path = None
+    if logo_url and logo_url.startswith("/uploads/"):
+        logo_path = os.path.join(settings.STORAGE_PATH, logo_url[len("/uploads/"):])
+
+    rapport_mentions = inst_settings.get("rapport_mentions")
+
     # Generate PDF
     dossier_dict = {
         "id": str(dossier.id),
@@ -63,8 +78,10 @@ async def create_rapport(dossier_id: str, db: AsyncSession = Depends(get_db)):
     pdf_url = await generate_pdf(
         dossier=dossier_dict,
         analyse=analyse_dict,
-        institution_nom="Institution",
+        institution_nom=institution_nom,
         output_dir=settings.STORAGE_PATH,
+        logo_path=logo_path,
+        rapport_mentions=rapport_mentions,
     )
 
     # Persist rapport record
@@ -75,6 +92,15 @@ async def create_rapport(dossier_id: str, db: AsyncSession = Depends(get_db)):
     )
     db.add(rapport)
     await db.flush()
+    await log_action(
+        db,
+        user_id=None,
+        institution_id=str(dossier.institution_id),
+        action="rapport.exported",
+        entity_type="rapport",
+        entity_id=str(rapport.id),
+        metadata={"dossier_id": dossier_id, "pdf_url": pdf_url},
+    )
 
     return {
         "id": str(rapport.id),

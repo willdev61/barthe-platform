@@ -6,7 +6,16 @@ import type {
   Dossier,
   DossierComplet,
   Analyse,
+  AuditLog,
+  InstitutionSettings,
 } from './types'
+
+export const MOCK_INSTITUTION_SETTINGS: InstitutionSettings = {
+  scoring_thresholds: { ebitda_min: 20, levier_max: 3.0, dscr_min: 1.2 },
+  secteurs_actifs: ['Agriculture', 'Commerce général', 'Services numériques', 'Agroalimentaire'],
+  rapport_logo_url: null,
+  rapport_mentions: 'Document confidentiel — usage interne uniquement',
+}
 
 export const MOCK_INSTITUTION: Institution = {
   id: 'inst-001',
@@ -16,6 +25,7 @@ export const MOCK_INSTITUTION: Institution = {
   secteurs_cibles: 'Agriculture, Commerce, Services',
   abonnement_statut: 'actif',
   created_at: '2024-01-15T09:00:00Z',
+  settings: MOCK_INSTITUTION_SETTINGS,
 }
 
 export const MOCK_USER: User = {
@@ -338,6 +348,97 @@ Le DSCR de 1,57 indique une capacité de remboursement confortable. Deux points 
     created_at: '2025-03-15T11:50:00Z',
   },
 }
+
+export const MOCK_AUDIT_LOGS: AuditLog[] = [
+  {
+    id: 'aud-001',
+    user_id: 'user-001',
+    institution_id: 'inst-001',
+    action: 'dossier.created',
+    entity_type: 'dossier',
+    entity_id: 'dos-001',
+    metadata: { nom_projet: 'Agro-Export Abidjan SARL' },
+    ip_address: '192.168.1.10',
+    created_at: '2025-03-20T08:30:00Z',
+  },
+  {
+    id: 'aud-002',
+    user_id: 'user-001',
+    institution_id: 'inst-001',
+    action: 'analyse.run',
+    entity_type: 'analyse',
+    entity_id: 'ana-001',
+    metadata: { dossier_id: 'dos-001', score: 82, tokens: 2840 },
+    ip_address: '192.168.1.10',
+    created_at: '2025-03-20T09:00:00Z',
+  },
+  {
+    id: 'aud-003',
+    user_id: 'user-001',
+    institution_id: 'inst-001',
+    action: 'rapport.exported',
+    entity_type: 'rapport',
+    entity_id: 'rap-001',
+    metadata: { dossier_id: 'dos-001', pdf_url: '/uploads/rapport_dos-001.pdf' },
+    ip_address: '192.168.1.10',
+    created_at: '2025-03-20T09:20:00Z',
+  },
+  {
+    id: 'aud-004',
+    user_id: 'user-001',
+    institution_id: 'inst-001',
+    action: 'dossier.created',
+    entity_type: 'dossier',
+    entity_id: 'dos-002',
+    metadata: { nom_projet: 'TechServices Dakar SAS' },
+    ip_address: '192.168.1.10',
+    created_at: '2025-03-18T14:00:00Z',
+  },
+  {
+    id: 'aud-005',
+    user_id: 'user-001',
+    institution_id: 'inst-001',
+    action: 'analyse.run',
+    entity_type: 'analyse',
+    entity_id: 'ana-002',
+    metadata: { dossier_id: 'dos-002', score: 61, tokens: 1950 },
+    ip_address: '192.168.1.10',
+    created_at: '2025-03-18T14:30:00Z',
+  },
+  {
+    id: 'aud-006',
+    user_id: 'user-001',
+    institution_id: 'inst-001',
+    action: 'dossier.created',
+    entity_type: 'dossier',
+    entity_id: 'dos-003',
+    metadata: { nom_projet: 'Boulangerie Moderne Ouaga' },
+    ip_address: '192.168.1.10',
+    created_at: '2025-03-15T11:00:00Z',
+  },
+  {
+    id: 'aud-007',
+    user_id: 'user-001',
+    institution_id: 'inst-001',
+    action: 'analyse.run',
+    entity_type: 'analyse',
+    entity_id: 'ana-003',
+    metadata: { dossier_id: 'dos-003', score: 38, tokens: 2100 },
+    ip_address: '192.168.1.10',
+    created_at: '2025-03-15T11:30:00Z',
+  },
+  {
+    id: 'aud-008',
+    user_id: 'user-001',
+    institution_id: 'inst-001',
+    action: 'user.invited',
+    entity_type: 'user',
+    entity_id: null,
+    metadata: { email: 'diallo.ibrahima@ba-ci.com', role: 'analyste' },
+    ip_address: '192.168.1.10',
+    created_at: '2025-03-10T10:00:00Z',
+  },
+]
 
 export function getMockDossierComplet(id: string): DossierComplet | null {
   const dossier = MOCK_DOSSIERS.find((d) => d.id === id)

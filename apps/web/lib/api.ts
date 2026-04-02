@@ -1,9 +1,11 @@
 // ---- API client — mock mode (USE_MOCK=true) ----
 
-import type { Dossier, DossierComplet, Analyse } from './types'
+import type { Dossier, DossierComplet, Analyse, AuditLog, AuditLogsResponse, Institution, InstitutionSettings } from './types'
 import {
   MOCK_DOSSIERS,
   MOCK_ANALYSES,
+  MOCK_AUDIT_LOGS,
+  MOCK_INSTITUTION,
   getMockDossierComplet,
 } from './mock-data'
 
@@ -105,4 +107,81 @@ export async function generateRapport(dossierId: string): Promise<string> {
   if (!res.ok) throw new Error('Erreur lors de la génération du rapport')
   const data = await res.json()
   return data.pdf_url
+}
+
+// ---- Audit ----
+
+export async function getAuditLogs(params?: {
+  page?: number
+  action?: string
+  start_date?: string
+  end_date?: string
+}): Promise<AuditLogsResponse> {
+  if (USE_MOCK) {
+    await new Promise((r) => setTimeout(r, 300))
+    let items = [...MOCK_AUDIT_LOGS]
+    if (params?.action) items = items.filter((l) => l.action === params.action)
+    return { items, total: items.length, page: params?.page ?? 1, limit: 20 }
+  }
+  const qs = new URLSearchParams()
+  if (params?.page) qs.set('page', String(params.page))
+  if (params?.action) qs.set('action', params.action)
+  if (params?.start_date) qs.set('start_date', params.start_date)
+  if (params?.end_date) qs.set('end_date', params.end_date)
+  const res = await fetch(`/api/audit?${qs}`)
+  if (!res.ok) throw new Error("Erreur lors du chargement de l'historique")
+  return res.json()
+}
+
+// ---- Institutions ----
+
+export async function getMyInstitution(): Promise<Institution> {
+  if (USE_MOCK) {
+    await new Promise((r) => setTimeout(r, 200))
+    return { ...MOCK_INSTITUTION }
+  }
+  const res = await fetch('/api/institutions/me')
+  if (!res.ok) throw new Error("Erreur lors du chargement de l'institution")
+  return res.json()
+}
+
+export async function updateInstitutionSettings(data: InstitutionSettings): Promise<Institution> {
+  if (USE_MOCK) {
+    await new Promise((r) => setTimeout(r, 400))
+    return { ...MOCK_INSTITUTION, settings: data }
+  }
+  const res = await fetch('/api/institutions/me/settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error('Erreur lors de la sauvegarde des paramètres')
+  return res.json()
+}
+
+export async function uploadInstitutionLogo(file: File): Promise<string> {
+  if (USE_MOCK) {
+    await new Promise((r) => setTimeout(r, 800))
+    return URL.createObjectURL(file)
+  }
+  const form = new FormData()
+  form.append('file', file)
+  const res = await fetch('/api/institutions/me/logo', { method: 'PUT', body: form })
+  if (!res.ok) throw new Error('Erreur lors de la mise en ligne du logo')
+  const data = await res.json()
+  return data.logo_url
+}
+
+export async function getAuditLogsForDossier(dossierId: string): Promise<AuditLog[]> {
+  if (USE_MOCK) {
+    await new Promise((r) => setTimeout(r, 200))
+    return MOCK_AUDIT_LOGS.filter(
+      (l) =>
+        l.entity_id === dossierId ||
+        (l.metadata as Record<string, unknown>)['dossier_id'] === dossierId
+    )
+  }
+  const res = await fetch(`/api/audit/dossiers/${dossierId}`)
+  if (!res.ok) throw new Error("Erreur lors du chargement de l'historique")
+  return res.json()
 }

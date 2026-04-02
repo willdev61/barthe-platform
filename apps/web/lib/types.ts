@@ -6,6 +6,19 @@ export type DossierStatut = 'en_attente' | 'en_cours' | 'analyse' | 'erreur'
 export type ScoreLabel = 'Favorable' | 'Réservé' | 'Défavorable'
 export type AlerteCriticite = 'info' | 'warning' | 'critical'
 
+export interface ScoringThresholds {
+  ebitda_min: number
+  levier_max: number
+  dscr_min: number
+}
+
+export interface InstitutionSettings {
+  scoring_thresholds: ScoringThresholds
+  secteurs_actifs: string[]
+  rapport_logo_url: string | null
+  rapport_mentions: string
+}
+
 export interface Institution {
   id: string
   nom: string
@@ -14,6 +27,7 @@ export interface Institution {
   secteurs_cibles: string | null
   abonnement_statut: AbonnementStatut
   created_at: string
+  settings?: InstitutionSettings
 }
 
 export interface User {
@@ -87,6 +101,25 @@ export interface Rapport {
 export interface DossierComplet extends Dossier {
   analyse?: Analyse
   rapports?: Rapport[]
+}
+
+export interface AuditLog {
+  id: string
+  user_id: string | null
+  institution_id: string | null
+  action: string
+  entity_type: string
+  entity_id: string | null
+  metadata: Record<string, unknown>
+  ip_address: string | null
+  created_at: string
+}
+
+export interface AuditLogsResponse {
+  items: AuditLog[]
+  total: number
+  page: number
+  limit: number
 }
 
 // ---- Helpers ----

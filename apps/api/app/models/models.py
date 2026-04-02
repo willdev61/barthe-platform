@@ -7,12 +7,21 @@ from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import String, Text, SmallInteger, Integer, ForeignKey, DateTime, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from app.core.database import Base
 
 
 def now_utc() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _default_institution_settings() -> dict:
+    return {
+        "scoring_thresholds": {"ebitda_min": 20.0, "levier_max": 3.0, "dscr_min": 1.2},
+        "secteurs_actifs": [],
+        "rapport_logo_url": None,
+        "rapport_mentions": "Document confidentiel",
+    }
 
 
 class Institution(Base):
@@ -24,6 +33,7 @@ class Institution(Base):
     pays: Mapped[str] = mapped_column(String(100), default="Côte d'Ivoire")
     secteurs_cibles: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     abonnement_statut: Mapped[str] = mapped_column(String(20), default="trial")
+    inst_settings: Mapped[dict] = mapped_column("settings", JSONB, default=_default_institution_settings)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
 
     users: Mapped[list["User"]] = relationship("User", back_populates="institution")
@@ -93,3 +103,17 @@ class Rapport(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
 
     dossier: Mapped["Dossier"] = relationship("Dossier", back_populates="rapports")
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[Optional[str]] = mapped_column(String(36), ForeignKey("user.id", ondelete="SET NULL"), nullable=True)
+    institution_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), ForeignKey("institutions.id", ondelete="CASCADE"), nullable=True)
+    action: Mapped[str] = mapped_column(String(50), nullable=False)
+    entity_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    entity_id: Mapped[Optional[uuid.UUID]] = mapped_column(UUID(as_uuid=True), nullable=True)
+    extra: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
+    ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)

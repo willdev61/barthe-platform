@@ -14,7 +14,12 @@ def _safe_div(numerator: Optional[float], denominator: Optional[float]) -> Optio
     return numerator / denominator
 
 
-def compute_ratios(data: DonneesNormalisees) -> dict[str, RatioFinancier]:
+def compute_ratios(data: DonneesNormalisees, thresholds: Optional[dict] = None) -> dict[str, RatioFinancier]:
+    t = thresholds or {}
+    ebitda_min = float(t.get("ebitda_min", 20.0))
+    levier_max = float(t.get("levier_max", 3.0))
+    dscr_min = float(t.get("dscr_min", 1.2))
+
     ca = data.chiffre_affaires
     charges = data.charges_exploitation
     ebitda = data.ebitda
@@ -64,14 +69,14 @@ def compute_ratios(data: DonneesNormalisees) -> dict[str, RatioFinancier]:
             label="Taux d'EBITDA",
             valeur=r(taux_ebitda_val),
             unite="%",
-            seuil_min=20.0,
+            seuil_min=ebitda_min,
             description="EBITDA / CA × 100",
         ),
         "levier_financier": RatioFinancier(
             label="Levier financier",
             valeur=r(levier_val),
             unite="x",
-            seuil_max=3.0,
+            seuil_max=levier_max,
             description="Dette / EBITDA",
         ),
         "ratio_endettement": RatioFinancier(
@@ -85,7 +90,7 @@ def compute_ratios(data: DonneesNormalisees) -> dict[str, RatioFinancier]:
             label="DSCR",
             valeur=r(dscr_val),
             unite="x",
-            seuil_min=1.2,
+            seuil_min=dscr_min,
             description="EBITDA / (Dette × 0.15)",
         ),
     }
@@ -94,26 +99,32 @@ def compute_ratios(data: DonneesNormalisees) -> dict[str, RatioFinancier]:
 def compute_score(
     ratios: dict[str, RatioFinancier],
     alertes: list[AlerteSchema],
+    thresholds: Optional[dict] = None,
 ) -> int:
     """
     Score /100:
-    - Taux EBITDA > 20% → +25 pts
-    - Levier < 3 → +25 pts
-    - DSCR > 1.2 → +25 pts
+    - Taux EBITDA > ebitda_min% → +25 pts
+    - Levier < levier_max → +25 pts
+    - DSCR > dscr_min → +25 pts
     - Aucune alerte critique → +25 pts
     """
+    t = thresholds or {}
+    ebitda_min = float(t.get("ebitda_min", 20.0))
+    levier_max = float(t.get("levier_max", 3.0))
+    dscr_min = float(t.get("dscr_min", 1.2))
+
     score = 0
 
     taux_ebitda = ratios.get("taux_ebitda")
-    if taux_ebitda and taux_ebitda.valeur is not None and taux_ebitda.valeur > 20:
+    if taux_ebitda and taux_ebitda.valeur is not None and taux_ebitda.valeur > ebitda_min:
         score += 25
 
     levier = ratios.get("levier_financier")
-    if levier and levier.valeur is not None and levier.valeur < 3:
+    if levier and levier.valeur is not None and levier.valeur < levier_max:
         score += 25
 
     dscr = ratios.get("dscr")
-    if dscr and dscr.valeur is not None and dscr.valeur > 1.2:
+    if dscr and dscr.valeur is not None and dscr.valeur > dscr_min:
         score += 25
 
     has_critical = any(a.criticite == "critical" for a in alertes)
