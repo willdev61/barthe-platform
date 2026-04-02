@@ -30,7 +30,8 @@ export function InviteModal({ orgId, onClose, onSuccess }: InviteModalProps) {
     setLoading(true)
     setError('')
 
-    const { error } = await organization.inviteMember({ email, role, organizationId: orgId })
+    const baRole = role === 'admin' ? 'admin' : 'member'
+    const { error } = await organization.inviteMember({ email, role: baRole, organizationId: orgId })
 
     if (error) {
       setError(error.message || "Erreur lors de l'envoi de l'invitation")

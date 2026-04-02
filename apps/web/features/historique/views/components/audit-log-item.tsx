@@ -44,12 +44,12 @@ export function AuditLogItem({ log }: AuditLogItemProps) {
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground">{cfg.label}</p>
-            {log.metadata['nom_projet'] && (
+            {log.metadata['nom_projet'] != null && (
               <p className="text-xs text-muted-foreground mt-0.5 truncate">
                 {String(log.metadata['nom_projet'])}
               </p>
             )}
-            {log.metadata['email'] && (
+            {log.metadata['email'] != null && (
               <p className="text-xs text-muted-foreground mt-0.5 truncate">
                 {String(log.metadata['email'])}
               </p>

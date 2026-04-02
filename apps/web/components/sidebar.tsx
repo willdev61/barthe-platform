@@ -15,9 +15,9 @@ import {
   GitCompareArrows,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MOCK_USER, MOCK_INSTITUTION } from '@/lib/mock-data'
-import { signOut } from '@/lib/auth-client'
+import { signOut, useSession, organization } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
+import useSWR from 'swr'
 
 const navItems = [
   {
@@ -55,6 +55,12 @@ const navItems = [
 export function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname()
   const router = useRouter()
+  const { data: session } = useSession()
+  const { data: activeOrg } = useSWR('active-org', () => organization.getFullOrganization())
+
+  const userName = session?.user?.name ?? '…'
+  const orgName = activeOrg?.data?.name ?? '…'
+  const initials = userName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
 
   const handleLogout = async () => {
     await signOut()
@@ -87,7 +93,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         <div className="flex items-center gap-2">
           <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           <span className="text-xs text-muted-foreground truncate">
-            {MOCK_INSTITUTION.nom}
+            {orgName}
           </span>
         </div>
       </div>
@@ -132,20 +138,15 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         <div className="flex items-center gap-3 px-3 py-2.5 rounded-md">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 shrink-0">
             <span className="text-xs font-semibold text-primary">
-              {MOCK_USER.nom
-                .split(' ')
-                .map((n) => n[0])
-                .join('')
-                .slice(0, 2)
-                .toUpperCase()}
+              {initials}
             </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">
-              {MOCK_USER.nom}
+              {userName}
             </p>
             <p className="text-xs text-muted-foreground truncate capitalize">
-              {MOCK_USER.role}
+              {session?.user?.email ?? ''}
             </p>
           </div>
           <button

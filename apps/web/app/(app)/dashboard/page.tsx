@@ -4,11 +4,11 @@ import { useState, useMemo } from 'react'
 import useSWR from 'swr'
 import { Search, Filter, FolderOpen, TrendingUp, Clock, CheckCircle2, Plus } from 'lucide-react'
 import Link from 'next/link'
-import { getDossiers } from '@/lib/api'
+import { getDossiers } from '@/features/dossiers/services/dossier-service'
 import type { Dossier } from '@/lib/types'
 import { DossierCard } from '@/components/dossier-card'
 import { cn } from '@/lib/utils'
-import { MOCK_USER, MOCK_INSTITUTION } from '@/lib/mock-data'
+import { useSession, organization } from '@/lib/auth-client'
 
 const STATUT_OPTIONS = [
   { value: 'all', label: 'Tous' },
@@ -47,6 +47,8 @@ function StatCard({
 export default function DashboardPage() {
   const [search, setSearch] = useState('')
   const [statutFilter, setStatutFilter] = useState<string>('all')
+  const { data: session } = useSession()
+  const { data: activeOrg } = useSWR('active-org', () => organization.getFullOrganization())
 
   const { data: dossiers, isLoading, error } = useSWR<Dossier[]>(
     'dossiers',
@@ -97,10 +99,10 @@ export default function DashboardPage() {
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground text-balance">
-            {greeting}, {MOCK_USER.nom.split(' ')[0]}
+            {greeting}, {session?.user?.name?.split(' ')[0] ?? '…'}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            {MOCK_INSTITUTION.nom} · Tableau de bord
+            {activeOrg?.data?.name ?? '…'} · Tableau de bord
           </p>
         </div>
         <Link
