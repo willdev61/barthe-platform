@@ -7,13 +7,7 @@ const nextConfig = {
     unoptimized: true,
   },
   async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/login',
-        permanent: false,
-      },
-    ]
+    return []
   },
 }
 
