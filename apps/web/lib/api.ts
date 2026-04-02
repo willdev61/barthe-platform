@@ -1,6 +1,6 @@
 // ---- API client — mock mode (USE_MOCK=true) ----
 
-import type { Dossier, DossierComplet, Analyse, AuditLog, AuditLogsResponse, Institution, InstitutionSettings, ComparatifItem } from './types'
+import type { Dossier, DossierComplet, Analyse, AuditLog, AuditLogsResponse, Institution, InstitutionSettings, ComparatifItem, AdminInstitution, AdminUser, AdminStats, MonitoringData } from './types'
 import {
   MOCK_DOSSIERS,
   MOCK_ANALYSES,
@@ -208,6 +208,93 @@ export async function uploadInstitutionLogo(file: File): Promise<string> {
   if (!res.ok) throw new Error('Erreur lors de la mise en ligne du logo')
   const data = await res.json()
   return data.logo_url
+}
+
+// ---- Admin ----
+
+const MOCK_ADMIN_INSTITUTIONS: AdminInstitution[] = [
+  { id: 'inst-001', nom: 'Banque Atlantique CI', email_admin: 'admin@ba-ci.com', pays: "Côte d'Ivoire", abonnement_statut: 'actif', nb_dossiers: 6, created_at: '2024-01-15T09:00:00Z' },
+  { id: 'inst-002', nom: 'SGBCI Groupe', email_admin: 'admin@sgbci.com', pays: "Côte d'Ivoire", abonnement_statut: 'actif', nb_dossiers: 3, created_at: '2024-02-03T11:00:00Z' },
+  { id: 'inst-003', nom: 'Ecobank Ghana', email_admin: 'admin@ecobank.gh', pays: 'Ghana', abonnement_statut: 'trial', nb_dossiers: 1, created_at: '2024-03-10T14:00:00Z' },
+  { id: 'inst-004', nom: "BNI Côte d'Ivoire", email_admin: 'admin@bni.ci', pays: "Côte d'Ivoire", abonnement_statut: 'suspendu', nb_dossiers: 0, created_at: '2024-01-28T08:00:00Z' },
+]
+
+const MOCK_ADMIN_USERS: AdminUser[] = [
+  { id: 'user-001', nom: 'Koné Aminata', email: 'aminata.kone@ba-ci.com', role: 'analyste', institution: 'Banque Atlantique CI', institution_id: 'inst-001', last_login: '2025-03-28T08:45:00Z', actif: true },
+  { id: 'user-002', nom: 'Traoré Boubacar', email: 'boubacar@ba-ci.com', role: 'admin', institution: 'Banque Atlantique CI', institution_id: 'inst-001', last_login: '2025-03-27T16:00:00Z', actif: true },
+  { id: 'user-003', nom: 'Diallo Ibrahima', email: 'diallo@sgbci.com', role: 'analyste', institution: 'SGBCI Groupe', institution_id: 'inst-002', last_login: '2025-03-25T10:20:00Z', actif: true },
+  { id: 'user-004', nom: 'Asante Kwame', email: 'kwame@ecobank.gh', role: 'lecture', institution: 'Ecobank Ghana', institution_id: 'inst-003', last_login: '2025-03-20T12:00:00Z', actif: true },
+]
+
+const _dailyData = (() => {
+  const values = [3,1,4,2,5,3,2,1,4,3,5,2,3,1,4,6,2,3,5,4,2,1,3,4,5,3,2,4,3,5]
+  const base = new Date('2025-03-01')
+  return values.map((dossiers, i) => {
+    const d = new Date(base)
+    d.setDate(d.getDate() + i)
+    return { date: d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }), dossiers }
+  })
+})()
+
+const MOCK_MONITORING_DATA: MonitoringData = {
+  stats: { total_institutions: 4, total_dossiers: 10, total_tokens_llm: 285400, score_moyen: 64, tokens_cout_estime_usd: 2.85 },
+  dossiers_par_jour: _dailyData,
+  dernieres_analyses: [
+    { dossier_id: 'dos-001', nom_projet: 'Agro-Export Abidjan SARL', institution: 'Banque Atlantique CI', score: 82, tokens: 2840, created_at: '2025-03-20T09:15:00Z' },
+    { dossier_id: 'dos-002', nom_projet: 'TechServices Dakar SAS', institution: 'Banque Atlantique CI', score: 61, tokens: 1950, created_at: '2025-03-18T14:45:00Z' },
+    { dossier_id: 'dos-003', nom_projet: 'Boulangerie Moderne Ouaga', institution: 'Banque Atlantique CI', score: 38, tokens: 2100, created_at: '2025-03-15T11:50:00Z' },
+  ],
+}
+
+export async function getAdminInstitutions(): Promise<AdminInstitution[]> {
+  if (USE_MOCK) { await new Promise(r => setTimeout(r, 400)); return [...MOCK_ADMIN_INSTITUTIONS] }
+  const res = await fetch('/api/admin/institutions')
+  if (!res.ok) throw new Error('Erreur chargement institutions')
+  return res.json()
+}
+
+export async function updateInstitutionStatut(id: string, statut: 'actif' | 'suspendu'): Promise<void> {
+  if (USE_MOCK) { await new Promise(r => setTimeout(r, 300)); return }
+  const res = await fetch(`/api/admin/institutions/${id}/statut`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ statut }),
+  })
+  if (!res.ok) throw new Error('Erreur mise à jour statut')
+}
+
+export async function deleteAdminInstitution(id: string): Promise<void> {
+  if (USE_MOCK) { await new Promise(r => setTimeout(r, 300)); return }
+  const res = await fetch(`/api/admin/institutions/${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Erreur suppression institution')
+}
+
+export async function getAdminUsers(): Promise<AdminUser[]> {
+  if (USE_MOCK) { await new Promise(r => setTimeout(r, 400)); return [...MOCK_ADMIN_USERS] }
+  const res = await fetch('/api/admin/users')
+  if (!res.ok) throw new Error('Erreur chargement utilisateurs')
+  return res.json()
+}
+
+export async function updateUserRole(id: string, role: string): Promise<void> {
+  if (USE_MOCK) { await new Promise(r => setTimeout(r, 300)); return }
+  const res = await fetch(`/api/admin/users/${id}/role`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role }),
+  })
+  if (!res.ok) throw new Error('Erreur mise à jour rôle')
+}
+
+export async function deleteAdminUser(id: string): Promise<void> {
+  if (USE_MOCK) { await new Promise(r => setTimeout(r, 300)); return }
+  const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Erreur suppression utilisateur')
+}
+
+export async function getAdminMonitoring(): Promise<MonitoringData> {
+  if (USE_MOCK) { await new Promise(r => setTimeout(r, 500)); return MOCK_MONITORING_DATA }
+  const res = await fetch('/api/admin/monitoring')
+  if (!res.ok) throw new Error('Erreur chargement monitoring')
+  return res.json()
 }
 
 export async function getAuditLogsForDossier(dossierId: string): Promise<AuditLog[]> {

@@ -103,6 +103,50 @@ export interface DossierComplet extends Dossier {
   rapports?: Rapport[]
 }
 
+// ---- Admin ----
+
+export interface AdminInstitution {
+  id: string
+  nom: string
+  email_admin: string
+  pays: string
+  abonnement_statut: string
+  nb_dossiers: number
+  created_at: string
+}
+
+export interface AdminUser {
+  id: string
+  nom: string
+  email: string
+  role: string
+  institution: string
+  institution_id: string
+  last_login: string | null
+  actif: boolean
+}
+
+export interface AdminStats {
+  total_institutions: number
+  total_dossiers: number
+  total_tokens_llm: number
+  score_moyen: number
+  tokens_cout_estime_usd: number
+}
+
+export interface MonitoringData {
+  stats: AdminStats
+  dossiers_par_jour: { date: string; dossiers: number }[]
+  dernieres_analyses: {
+    dossier_id: string
+    nom_projet: string
+    institution: string
+    score: number
+    tokens: number
+    created_at: string
+  }[]
+}
+
 export interface ComparatifItem {
   id: string
   nom_projet: string
