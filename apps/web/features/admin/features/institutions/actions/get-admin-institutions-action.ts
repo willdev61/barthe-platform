@@ -14,6 +14,7 @@ export async function getAdminInstitutionsAction(): Promise<AdminInstitution[]> 
     nom: i.nom,
     email_admin: i.email_admin,
     pays: i.pays,
+    secteurs_cibles: i.secteurs_cibles,
     abonnement_statut: i.abonnement_statut,
     nb_dossiers: i._count.dossiers,
     created_at: i.created_at.toISOString(),

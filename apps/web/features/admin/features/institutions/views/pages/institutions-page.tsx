@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import useSWR from "swr"
-import { Building2, Plus, Trash2, Loader2, Search, Clock, CheckCircle } from "lucide-react"
+import { Building2, Plus, Trash2, Loader2, Search, Clock, CheckCircle, Pencil } from "lucide-react"
 import ReactCountryFlag from "react-country-flag"
 import { toast } from "sonner"
 import type { AdminInstitution } from "@/features/admin/types"
@@ -12,6 +12,7 @@ import {
   deleteAdminInstitution,
 } from "../../services/admin-institution-service"
 import { CreateInstitutionDialog } from "../components/create-institution-dialog"
+import { EditInstitutionDialog } from "../components/edit-institution-dialog"
 import { PAYS, PAYS_ISO } from "../../constants"
 import { formatDate } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -109,6 +110,7 @@ export function InstitutionsPage() {
   )
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
+  const [editTarget, setEditTarget] = useState<AdminInstitution | null>(null)
   const [search, setSearch] = useState("")
   const [filterStatut, setFilterStatut] = useState("all")
   const [filterPays, setFilterPays] = useState("all")
@@ -187,6 +189,16 @@ export function InstitutionsPage() {
           onCreated={(institution) => {
             mutate((prev) => [institution, ...(prev ?? [])])
             setShowCreate(false)
+          }}
+        />
+      )}
+      {editTarget && (
+        <EditInstitutionDialog
+          institution={editTarget}
+          onClose={() => setEditTarget(null)}
+          onUpdated={(updated) => {
+            mutate((prev) => prev?.map((i) => (i.id === updated.id ? updated : i)))
+            setEditTarget(null)
           }}
         />
       )}
@@ -378,6 +390,18 @@ export function InstitutionsPage() {
                               className={isActif ? "data-[state=checked]:bg-score-favorable" : ""}
                             />
                           )}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                disabled={isPending}
+                                onClick={() => setEditTarget(inst)}
+                                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-40"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="left">Modifier</TooltipContent>
+                          </Tooltip>
                           <AlertDialog>
                             <Tooltip>
                               <TooltipTrigger asChild>

@@ -1,6 +1,7 @@
 'use server'
 
 import { prisma } from '@/lib/db'
+import { auth } from '@/lib/auth'
 import type { AdminInstitution } from '@/lib/types'
 
 export interface CreateInstitutionInput {
@@ -34,11 +35,39 @@ export async function createInstitutionAction(input: CreateInstitutionInput): Pr
     include: { _count: { select: { dossiers: true } } },
   })
 
+  // Create better-auth user account for the institution admin
+  await auth.api.createUser({
+    body: {
+      email: input.email_admin,
+      name: input.nom,
+      data: { role: 'admin_institution' },
+    },
+  })
+
+  // Create app-level user linked to the institution
+  await prisma.user.create({
+    data: {
+      institution_id: institution.id,
+      nom: input.nom,
+      email: input.email_admin,
+      role: 'admin_institution',
+    },
+  })
+
+  // Trigger password setup email (sendResetPassword hook detects admin_institution role)
+  await auth.api.requestPasswordReset({
+    body: {
+      email: input.email_admin,
+      redirectTo: '/reset-password',
+    },
+  })
+
   return {
     id: institution.id,
     nom: institution.nom,
     email_admin: institution.email_admin,
     pays: institution.pays,
+    secteurs_cibles: institution.secteurs_cibles,
     abonnement_statut: institution.abonnement_statut,
     nb_dossiers: institution._count.dossiers,
     created_at: institution.created_at.toISOString(),

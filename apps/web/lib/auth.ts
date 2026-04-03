@@ -1,8 +1,8 @@
 import { betterAuth } from "better-auth"
 import { Pool } from "pg"
-import { organization } from "better-auth/plugins"
-import { bearer } from "better-auth/plugins"
-import { sendInvitationEmail, sendResetPasswordEmail } from "./mailer"
+import { organization, bearer, admin } from "better-auth/plugins"
+import { sendInvitationEmail, sendResetPasswordEmail, sendInstitutionWelcomeEmail } from "./mailer"
+import { prisma } from "./db"
 
 export const auth = betterAuth({
   database: new Pool({
@@ -21,11 +21,21 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false,
     sendResetPassword: async ({ user, url }) => {
-      await sendResetPasswordEmail({
-        to: user.email,
-        userName: user.name ?? user.email,
-        resetUrl: url,
-      })
+      const role = (user as Record<string, unknown>).role as string | undefined
+      if (role === 'admin_institution') {
+        const institution = await prisma.institution.findUnique({ where: { email_admin: user.email } })
+        await sendInstitutionWelcomeEmail({
+          to: user.email,
+          institutionName: institution?.nom ?? user.name ?? user.email,
+          setupUrl: url,
+        })
+      } else {
+        await sendResetPasswordEmail({
+          to: user.email,
+          userName: user.name ?? user.email,
+          resetUrl: url,
+        })
+      }
     },
   },
   session: {
@@ -51,6 +61,7 @@ export const auth = betterAuth({
       },
     }),
     bearer(),
+    admin(),
   ],
   trustedOrigins: [
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",

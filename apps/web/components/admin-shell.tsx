@@ -1,18 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AdminSidebar } from '@/components/admin-sidebar'
 import { AdminToolbar } from '@/components/admin-toolbar'
 import { cn } from '@/lib/utils'
 
-function readCollapsed(): boolean {
-  if (typeof window === 'undefined') return false
-  return localStorage.getItem('admin-sidebar-collapsed') === 'true'
-}
-
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
-  const [collapsed, setCollapsed] = useState(readCollapsed)
+  const [collapsed, setCollapsed] = useState(false)
+
+  useEffect(() => {
+    setCollapsed(localStorage.getItem('admin-sidebar-collapsed') === 'true')
+  }, [])
 
   const toggleCollapsed = () => {
     setCollapsed((v) => {

@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer'
 import { render } from '@react-email/render'
 import { InvitationEmail } from './email-templates/invitation'
 import { ResetPasswordEmail } from './email-templates/reset-password'
+import { InstitutionWelcomeEmail } from './email-templates/institution-welcome'
 
 // ─── Transport ───────────────────────────────────────────────────────────────
 
@@ -61,4 +62,19 @@ export async function sendResetPasswordEmail(params: {
     />
   )
   await sendMail(params.to, 'Réinitialisation de votre mot de passe BARTHE', html)
+}
+
+export async function sendInstitutionWelcomeEmail(params: {
+  to: string
+  institutionName: string
+  setupUrl: string
+}): Promise<void> {
+  const html = await render(
+    <InstitutionWelcomeEmail
+      institutionName={params.institutionName}
+      setupUrl={params.setupUrl}
+      webUrl={WEB_URL}
+    />
+  )
+  await sendMail(params.to, `Bienvenue sur BARTHE — ${params.institutionName}`, html)
 }

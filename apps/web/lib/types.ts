@@ -110,6 +110,7 @@ export interface AdminInstitution {
   nom: string
   email_admin: string
   pays: string
+  secteurs_cibles: string | null
   abonnement_statut: string
   nb_dossiers: number
   created_at: string
