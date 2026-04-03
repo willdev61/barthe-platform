@@ -5,6 +5,7 @@ import useSWR from 'swr'
 import { Building2, Plus, Power, PowerOff, Trash2, Loader2 } from 'lucide-react'
 import type { AdminInstitution } from '@/features/admin/types'
 import { getAdminInstitutions, updateInstitutionStatut, deleteAdminInstitution } from '../../services/admin-institution-service'
+import { CreateInstitutionDialog } from '../components/create-institution-dialog'
 import { formatDate } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -18,6 +19,7 @@ export function InstitutionsPage() {
   const { data, isLoading, mutate } = useSWR<AdminInstitution[]>('admin-institutions', getAdminInstitutions)
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [showCreate, setShowCreate] = useState(false)
 
   const handleStatut = async (id: string, current: string) => {
     const next = current === 'actif' ? 'suspendu' : 'actif'
@@ -42,13 +44,26 @@ export function InstitutionsPage() {
   }
 
   return (
+    <>
+    {showCreate && (
+      <CreateInstitutionDialog
+        onClose={() => setShowCreate(false)}
+        onCreated={(institution) => {
+          mutate((prev) => [institution, ...(prev ?? [])])
+          setShowCreate(false)
+        }}
+      />
+    )}
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Institutions</h1>
           <p className="text-muted-foreground mt-1 text-sm">{data ? `${data.length} institutions` : '…'}</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity shrink-0">
+        <button
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity shrink-0"
+        >
           <Plus className="w-4 h-4" /> Créer institution
         </button>
       </div>
@@ -124,5 +139,6 @@ export function InstitutionsPage() {
         )}
       </div>
     </div>
+    </>
   )
 }

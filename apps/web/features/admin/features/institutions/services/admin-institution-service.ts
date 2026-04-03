@@ -1,3 +1,4 @@
 export { getAdminInstitutionsAction as getAdminInstitutions } from '../actions/get-admin-institutions-action'
 export { updateInstitutionStatutAction as updateInstitutionStatut } from '../actions/update-institution-statut-action'
 export { deleteInstitutionAction as deleteAdminInstitution } from '../actions/delete-institution-action'
+export { createInstitutionAction } from '../actions/create-institution-action'

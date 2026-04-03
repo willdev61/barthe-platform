@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AuthLayout } from '../components/auth-layout'
 import { LoginForm } from '../forms/login-form'
@@ -16,10 +15,7 @@ export function LoginPage() {
         </div>
         <LoginForm onSuccess={() => router.push('/dashboard')} />
         <p className="text-center text-sm text-gray-500 mt-6">
-          Pas encore de compte ?{' '}
-          <Link href="/register" className="text-[#534AB7] font-medium hover:underline">
-            S&apos;inscrire
-          </Link>
+          Accès sur invitation uniquement. Contactez votre administrateur.
         </p>
       </div>
     </AuthLayout>

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "check-types": "tsc --noEmit",
-    "seed:auth": "tsx --env-file .env.local scripts/seed-auth.ts"
+    "seed:auth": "tsx --env-file .env.local scripts/seed-auth.ts",
+    "seed": "tsx --env-file .env.local scripts/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -41,6 +42,8 @@
     "@radix-ui/react-toggle": "1.1.10",
     "@radix-ui/react-toggle-group": "1.1.11",
     "@radix-ui/react-tooltip": "1.2.8",
+    "@react-email/components": "^1.0.11",
+    "@react-email/render": "^2.0.5",
     "@vercel/analytics": "1.6.1",
     "better-auth": "^1.5.0",
     "class-variance-authority": "^0.7.1",
@@ -52,6 +55,7 @@
     "lucide-react": "^0.564.0",
     "next": "16.2.0",
     "next-themes": "^0.4.6",
+    "nodemailer": "^8.0.4",
     "pg": "^8.13.0",
     "prisma": "^7.6.0",
     "react": "19.2.4",
@@ -70,6 +74,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.0",
     "@types/node": "^22",
+    "@types/nodemailer": "^7.0.11",
     "@types/pg": "^8.11.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",

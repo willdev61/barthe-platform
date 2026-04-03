@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth"
 import { Pool } from "pg"
 import { organization } from "better-auth/plugins"
 import { bearer } from "better-auth/plugins"
+import { sendInvitationEmail, sendResetPasswordEmail } from "./mailer"
 
 export const auth = betterAuth({
   database: new Pool({
@@ -10,6 +11,13 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
+    sendResetPassword: async ({ user, url }) => {
+      await sendResetPasswordEmail({
+        to: user.email,
+        userName: user.name ?? user.email,
+        resetUrl: url,
+      })
+    },
   },
   session: {
     cookieCache: {
@@ -21,6 +29,17 @@ export const auth = betterAuth({
     organization({
       allowUserToCreateOrganization: false,
       membershipLimit: 50,
+      sendInvitationEmail: async ({ email, inviter, organization: org, role, invitation }) => {
+        const invitationUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/invitation?id=${invitation.id}`
+        await sendInvitationEmail({
+          to: email,
+          inviteeName: email,
+          institutionName: org.name,
+          inviterName: inviter.user.name ?? inviter.user.email,
+          role,
+          invitationUrl,
+        })
+      },
     }),
     bearer(),
   ],
