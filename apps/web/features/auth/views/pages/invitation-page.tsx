@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
 import type { InvitationDetails } from '../../types'
 import { getInvitation, acceptInvitation } from '../../services/auth-service'
-import { AuthCard } from '../components/auth-card'
+import { AuthLayout } from '../components/auth-layout'
 import { InvitationAuthForm } from '../forms/invitation-auth-form'
 
 function roleLabel(role: string): string {
@@ -50,7 +50,12 @@ export function InvitationPage() {
   }
 
   return (
-    <AuthCard title="Invitation" subtitle="Rejoignez votre équipe sur BARTHE">
+    <AuthLayout>
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">Invitation</h1>
+        <p className="text-sm text-gray-500 mt-1">Rejoignez votre équipe sur BARTHE</p>
+      </div>
       {(loadingInvitation || sessionLoading) && (
         <div className="flex justify-center py-8">
           <div className="w-6 h-6 rounded-full border-2 border-[#534AB7] border-t-transparent animate-spin" />
@@ -114,6 +119,7 @@ export function InvitationPage() {
           )}
         </div>
       )}
-    </AuthCard>
+    </div>
+    </AuthLayout>
   )
 }
