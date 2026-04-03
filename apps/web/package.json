@@ -8,6 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "check-types": "tsc --noEmit",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:auth": "tsx --env-file .env.local scripts/migrate-auth.ts",
     "seed:auth": "tsx --env-file .env.local scripts/seed-auth.ts",
     "seed": "tsx --env-file .env.local scripts/seed.ts"
   },

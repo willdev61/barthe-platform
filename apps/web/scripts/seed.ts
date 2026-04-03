@@ -30,10 +30,6 @@ const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL })
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function bearerHeaders(token: string): Headers {
-  return new Headers({ Authorization: `Bearer ${token}` })
-}
-
 async function signUp(email: string, password: string, name: string): Promise<string> {
   try {
     const res = await auth.api.signUpEmail({ body: { email, password, name } })
@@ -46,32 +42,21 @@ async function signUp(email: string, password: string, name: string): Promise<st
   }
 }
 
-async function signIn(email: string, password: string): Promise<string> {
-  const res = await auth.api.signInEmail({ body: { email, password } })
-  const token = (res as unknown as Record<string, unknown>).token as string | undefined
-  if (!token) {
-    // Fallback : lire le token de session directement en base
-    const row = await pool.query(`SELECT token FROM session WHERE "userId" = (SELECT id FROM "user" WHERE email = $1) ORDER BY "createdAt" DESC LIMIT 1`, [email])
-    if (row.rows.length === 0) throw new Error(`Impossible de récupérer le token pour ${email}`)
-    return row.rows[0].token
-  }
-  return token
-}
-
 async function setUserRole(userId: string, role: string): Promise<void> {
   await pool.query(`UPDATE "user" SET role = $1 WHERE id = $2`, [role, userId])
 }
 
-async function createOrganization(name: string, slug: string, token: string): Promise<string> {
+async function createOrganization(name: string, slug: string): Promise<string> {
   // Vérifie si l'org existe déjà
   const existing = await pool.query(`SELECT id FROM organization WHERE slug = $1`, [slug])
   if (existing.rows.length > 0) return existing.rows[0].id
 
-  const res = await auth.api.createOrganization({
-    body: { name, slug },
-    headers: bearerHeaders(token),
-  })
-  return (res as unknown as Record<string, unknown>).id as string
+  // Insertion directe en base (contourne allowUserToCreateOrganization: false)
+  const result = await pool.query(
+    `INSERT INTO organization (id, name, slug, "createdAt") VALUES (gen_random_uuid()::text, $1, $2, NOW()) RETURNING id`,
+    [name, slug]
+  )
+  return result.rows[0].id
 }
 
 async function addMember(organizationId: string, userId: string, role: 'member' | 'admin' | 'owner'): Promise<void> {
@@ -172,8 +157,7 @@ async function seed() {
   // ── 2. Créer les organisations better-auth + institutions Prisma ───────────
   console.log('\n🏦 Création des institutions...')
 
-  const tokenAdminBa = await signIn('admin@banque-atlantique.ci', 'demo1234')
-  const orgBaId = await createOrganization('Banque Atlantique CI', 'banque-atlantique-ci', tokenAdminBa)
+  const orgBaId = await createOrganization('Banque Atlantique CI', 'banque-atlantique-ci')
 
   await prisma.institution.upsert({
     where: { id: orgBaId },
@@ -195,8 +179,7 @@ async function seed() {
   })
   console.log('   ✅ Banque Atlantique CI (actif) — org ID:', orgBaId)
 
-  const tokenAdminBoad = await signIn('admin@boad-senegal.sn', 'demo1234')
-  const orgBoadId = await createOrganization('BOAD Sénégal', 'boad-senegal', tokenAdminBoad)
+  const orgBoadId = await createOrganization('BOAD Sénégal', 'boad-senegal')
 
   await prisma.institution.upsert({
     where: { id: orgBoadId },
