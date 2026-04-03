@@ -13,7 +13,7 @@ export function LoginPage() {
           <h1 className="text-2xl font-bold text-gray-900">Connexion</h1>
           <p className="text-sm text-gray-500 mt-1">Accédez à votre espace analyste</p>
         </div>
-        <LoginForm onSuccess={() => router.push('/dashboard')} />
+        <LoginForm onSuccess={(role) => router.push(role === 'admin' ? '/admin' : '/dashboard')} />
         <p className="text-center text-sm text-gray-500 mt-6">
           Accès sur invitation uniquement. Contactez votre administrateur.
         </p>

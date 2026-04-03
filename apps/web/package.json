@@ -13,7 +13,8 @@
     "db:push": "prisma db push",
     "db:auth": "tsx --env-file .env.local scripts/migrate-auth.ts",
     "seed:auth": "tsx --env-file .env.local scripts/seed-auth.ts",
-    "seed": "tsx --env-file .env.local scripts/seed.ts"
+    "seed": "tsx --env-file .env.local scripts/seed.ts",
+    "db:reset": "pnpm prisma migrate reset --force && pnpm db:auth && pnpm seed"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -63,6 +64,7 @@
     "pg": "^8.13.0",
     "prisma": "^7.6.0",
     "react": "19.2.4",
+    "react-country-flag": "^3.1.0",
     "react-day-picker": "9.13.2",
     "react-dom": "19.2.4",
     "react-dropzone": "^15.0.0",

@@ -2,15 +2,15 @@
 
 import { useState } from 'react'
 import { Sidebar } from '@/components/sidebar'
-import { Menu } from 'lucide-react'
+import { AppToolbar } from '@/components/app-toolbar'
+import { TrialBanner } from '@/components/trial-banner'
 import { cn } from '@/lib/utils'
 
 export function MobileShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Mobile overlay */}
+    <div className="flex h-screen overflow-hidden bg-background">
       {open && (
         <div
           className="fixed inset-0 z-30 bg-foreground/20 backdrop-blur-sm lg:hidden"
@@ -19,7 +19,6 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={cn(
           'fixed inset-y-0 left-0 z-40 lg:static lg:z-auto',
@@ -30,21 +29,10 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
         <Sidebar onClose={() => setOpen(false)} />
       </div>
 
-      {/* Main content */}
-      <div className="flex flex-col flex-1 min-w-0">
-        {/* Mobile top bar */}
-        <header className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card lg:hidden">
-          <button
-            onClick={() => setOpen(true)}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            aria-label="Ouvrir le menu"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          <span className="text-base font-bold text-foreground tracking-tight">BARTHE</span>
-        </header>
-
-        <main className="flex-1 min-w-0 overflow-auto">{children}</main>
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <AppToolbar onMenuToggle={() => setOpen((v) => !v)} />
+        <TrialBanner />
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   )

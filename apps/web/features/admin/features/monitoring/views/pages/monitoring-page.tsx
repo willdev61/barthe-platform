@@ -7,6 +7,14 @@ import type { MonitoringData } from '@/features/admin/types'
 import { getAdminMonitoring } from '../../services/monitoring-service'
 import { formatDate, getScoreBgColor } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table'
 
 function StatCard({ label, value, sub, icon: Icon, color }: {
   label: string; value: string | number; sub?: string; icon: React.ElementType; color: string
@@ -32,7 +40,7 @@ export function MonitoringPage() {
   const tickFormatter = (value: string, index: number) => index % 5 === 0 ? value : ''
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-6 lg:p-8 space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Monitoring</h1>
         <p className="text-muted-foreground mt-1 text-sm">Métriques globales de la plateforme</p>
@@ -79,34 +87,34 @@ export function MonitoringPage() {
           <h2 className="text-sm font-semibold text-foreground">Dernières analyses</h2>
         </div>
         {isLoading ? (
-          <div className="p-5 space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-10 bg-muted rounded animate-pulse" />)}</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/30">
-                  <th className="text-left px-5 py-3 font-medium text-muted-foreground">Projet</th>
-                  <th className="text-left px-5 py-3 font-medium text-muted-foreground">Institution</th>
-                  <th className="text-right px-5 py-3 font-medium text-muted-foreground">Tokens</th>
-                  <th className="text-right px-5 py-3 font-medium text-muted-foreground">Score</th>
-                  <th className="text-left px-5 py-3 font-medium text-muted-foreground">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data?.dernieres_analyses.map((a) => (
-                  <tr key={a.dossier_id} className="border-b border-border last:border-0 hover:bg-muted/20">
-                    <td className="px-5 py-3.5 font-medium text-foreground">{a.nom_projet}</td>
-                    <td className="px-5 py-3.5 text-muted-foreground">{a.institution}</td>
-                    <td className="px-5 py-3.5 text-right tabular-nums text-muted-foreground">{a.tokens.toLocaleString('fr-FR')}</td>
-                    <td className="px-5 py-3.5 text-right">
-                      <span className={cn('inline-block text-xs font-semibold px-2 py-0.5 rounded-full', getScoreBgColor(a.score))}>{a.score}</span>
-                    </td>
-                    <td className="px-5 py-3.5 text-muted-foreground">{formatDate(a.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="p-5 space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-10 bg-muted rounded animate-pulse" />)}
           </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/30 hover:bg-muted/30">
+                <TableHead className="px-5 py-3">Projet</TableHead>
+                <TableHead className="px-5 py-3">Institution</TableHead>
+                <TableHead className="px-5 py-3 text-right">Tokens</TableHead>
+                <TableHead className="px-5 py-3 text-right">Score</TableHead>
+                <TableHead className="px-5 py-3">Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data?.dernieres_analyses.map((a) => (
+                <TableRow key={a.dossier_id}>
+                  <TableCell className="px-5 py-3.5 font-medium text-foreground">{a.nom_projet}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-muted-foreground">{a.institution}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-right tabular-nums text-muted-foreground">{a.tokens.toLocaleString('fr-FR')}</TableCell>
+                  <TableCell className="px-5 py-3.5 text-right">
+                    <span className={cn('inline-block text-xs font-semibold px-2 py-0.5 rounded-full', getScoreBgColor(a.score))}>{a.score}</span>
+                  </TableCell>
+                  <TableCell className="px-5 py-3.5 text-muted-foreground">{formatDate(a.created_at)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </div>
     </div>

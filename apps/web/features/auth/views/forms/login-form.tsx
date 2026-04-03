@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { loginWithEmail } from '../../services/auth-service'
 
 interface LoginFormProps {
-  onSuccess: () => void
+  onSuccess: (role: string) => void
 }
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
@@ -19,8 +19,8 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     setLoading(true)
     setError('')
     try {
-      await loginWithEmail(email, password)
-      onSuccess()
+      const role = await loginWithEmail(email, password)
+      onSuccess(role)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion')
     } finally {

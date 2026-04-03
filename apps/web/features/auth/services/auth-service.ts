@@ -1,9 +1,11 @@
 import { signIn, signUp, signOut, organization } from '@/lib/auth-client'
 import type { InvitationDetails } from '../types'
 
-export async function loginWithEmail(email: string, password: string): Promise<void> {
-  const { error } = await signIn.email({ email, password, callbackURL: '/dashboard' })
+export async function loginWithEmail(email: string, password: string): Promise<string> {
+  const { data, error } = await signIn.email({ email, password })
   if (error) throw new Error('Email ou mot de passe incorrect')
+  const role = (data?.user as Record<string, unknown> | undefined)?.role as string ?? 'user'
+  return role
 }
 
 export async function registerWithEmail(email: string, password: string, name: string): Promise<void> {

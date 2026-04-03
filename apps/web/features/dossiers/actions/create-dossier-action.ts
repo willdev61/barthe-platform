@@ -13,6 +13,28 @@ export async function createDossierAction(data: unknown): Promise<Dossier> {
   const institutionId = session.session.activeOrganizationId
   if (!institutionId) throw new Error('Aucune institution active')
 
+  const institution = await prisma.institution.findUnique({
+    where: { id: institutionId },
+    select: { abonnement_statut: true, trial_end: true, dossiers_limit: true },
+  })
+  if (!institution) throw new Error('Institution introuvable')
+
+  if (institution.abonnement_statut === 'inactif') {
+    throw new Error('Votre compte est inactif. Contactez votre administrateur.')
+  }
+
+  if (institution.abonnement_statut === 'trial') {
+    if (institution.trial_end && new Date() > institution.trial_end) {
+      throw new Error('Votre période d\'essai a expiré. Contactez votre administrateur.')
+    }
+    if (institution.dossiers_limit !== null) {
+      const count = await prisma.dossier.count({ where: { institution_id: institutionId } })
+      if (count >= institution.dossiers_limit) {
+        throw new Error(`Limite de ${institution.dossiers_limit} dossiers atteinte en période d'essai.`)
+      }
+    }
+  }
+
   const parsed = createDossierSchema.safeParse(data)
   if (!parsed.success) throw new Error(parsed.error.errors[0].message)
 

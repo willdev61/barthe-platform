@@ -14,6 +14,8 @@ model Institution {
   pays             String
   secteurs_cibles  String?
   abonnement_statut String   @default("trial")
+  trial_end        DateTime?
+  dossiers_limit   Int?
   created_at       DateTime  @default(now())
   settings         Json?
   dossiers         Dossier[]

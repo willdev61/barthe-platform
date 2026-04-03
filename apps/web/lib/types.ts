@@ -1,6 +1,6 @@
 // ---- Shared Types for BARTHE ----
 
-export type AbonnementStatut = 'trial' | 'actif' | 'suspendu'
+export type AbonnementStatut = 'trial' | 'actif' | 'inactif'
 export type UserRole = 'admin' | 'analyste' | 'lecture'
 export type DossierStatut = 'en_attente' | 'en_cours' | 'analyse' | 'erreur'
 export type ScoreLabel = 'Favorable' | 'Réservé' | 'Défavorable'
@@ -113,6 +113,8 @@ export interface AdminInstitution {
   abonnement_statut: string
   nb_dossiers: number
   created_at: string
+  trial_end: string | null
+  dossiers_limit: number | null
 }
 
 export interface AdminUser {

@@ -72,7 +72,7 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
   }
 
   return (
-    <aside className="flex flex-col w-64 min-h-screen bg-card border-r border-border shrink-0">
+    <aside className="flex flex-col w-64 h-full bg-card border-r border-border shrink-0 overflow-y-auto">
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-border">
         <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary">

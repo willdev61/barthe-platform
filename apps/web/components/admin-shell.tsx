@@ -2,14 +2,27 @@
 
 import { useState } from 'react'
 import { AdminSidebar } from '@/components/admin-sidebar'
-import { Menu } from 'lucide-react'
+import { AdminToolbar } from '@/components/admin-toolbar'
 import { cn } from '@/lib/utils'
+
+function readCollapsed(): boolean {
+  if (typeof window === 'undefined') return false
+  return localStorage.getItem('admin-sidebar-collapsed') === 'true'
+}
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(readCollapsed)
+
+  const toggleCollapsed = () => {
+    setCollapsed((v) => {
+      localStorage.setItem('admin-sidebar-collapsed', String(!v))
+      return !v
+    })
+  }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       {open && (
         <div
           className="fixed inset-0 z-30 bg-foreground/20 backdrop-blur-sm lg:hidden"
@@ -25,22 +38,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
-        <AdminSidebar onClose={() => setOpen(false)} />
+        <AdminSidebar
+          onClose={() => setOpen(false)}
+          collapsed={collapsed}
+          onToggleCollapse={toggleCollapsed}
+        />
       </div>
 
-      <div className="flex flex-col flex-1 min-w-0">
-        <header className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card lg:hidden">
-          <button
-            onClick={() => setOpen(true)}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            aria-label="Ouvrir le menu"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          <span className="text-base font-bold text-foreground tracking-tight">BARTHE Admin</span>
-        </header>
-
-        <main className="flex-1 min-w-0 overflow-auto">{children}</main>
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        <AdminToolbar onMenuToggle={() => setOpen((v) => !v)} />
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   )

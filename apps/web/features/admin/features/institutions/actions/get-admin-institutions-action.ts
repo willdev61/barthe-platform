@@ -17,5 +17,7 @@ export async function getAdminInstitutionsAction(): Promise<AdminInstitution[]> 
     abonnement_statut: i.abonnement_statut,
     nb_dossiers: i._count.dossiers,
     created_at: i.created_at.toISOString(),
+    trial_end: i.trial_end ? i.trial_end.toISOString() : null,
+    dossiers_limit: i.dossiers_limit,
   }))
 }
