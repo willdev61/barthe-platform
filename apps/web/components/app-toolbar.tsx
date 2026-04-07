@@ -1,7 +1,8 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Menu, Bell } from 'lucide-react'
+import { Menu } from 'lucide-react'
+import { NotificationBell } from '@/features/notifications/views/components/notification-bell'
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Tableau de bord',
@@ -41,12 +42,7 @@ export function AppToolbar({ onMenuToggle }: AppToolbarProps) {
 
       <h1 className="text-base font-semibold text-foreground flex-1 truncate">{title}</h1>
 
-      <button
-        className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors relative"
-        aria-label="Notifications"
-      >
-        <Bell className="w-5 h-5" />
-      </button>
+      <NotificationBell />
     </header>
   )
 }

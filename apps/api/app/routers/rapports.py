@@ -11,6 +11,7 @@ import os
 from app.core.database import get_db
 from app.core.config import settings
 from app.core.audit import log_action
+from app.core.notifications import trigger_notification
 from app.models.models import Dossier, Analyse, Rapport, Institution
 from app.services.pdf_generator import generate_pdf
 
@@ -100,6 +101,13 @@ async def create_rapport(dossier_id: str, db: AsyncSession = Depends(get_db)):
         entity_type="rapport",
         entity_id=str(rapport.id),
         metadata={"dossier_id": dossier_id, "pdf_url": pdf_url},
+    )
+
+    await trigger_notification(
+        type="RAPPORT_PRET",
+        institution_id=str(dossier.institution_id),
+        user_id=str(dossier.created_by),
+        metadata={"dossier_id": dossier_id, "dossier_nom": dossier.nom_projet, "pdf_url": pdf_url},
     )
 
     return {

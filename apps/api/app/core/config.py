@@ -26,5 +26,9 @@ class Settings(BaseSettings):
     # Feature flags
     USE_MOCK: bool = True
 
+    # Internal notifications webhook (Next.js)
+    NEXT_INTERNAL_URL: str = ""
+    INTERNAL_WEBHOOK_SECRET: str = ""
+
 
 settings = Settings()

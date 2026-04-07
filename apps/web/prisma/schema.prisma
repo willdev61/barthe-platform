@@ -22,17 +22,19 @@ model Institution {
   users            User[]
   audit_logs       AuditLog[]
   api_keys         ApiKey[]
+  notifications    Notification[]
 }
 
 model User {
-  id             String      @id @default(cuid())
+  id             String         @id @default(cuid())
   institution_id String
   nom            String
-  email          String      @unique
-  role           String      @default("analyste")
+  email          String         @unique
+  role           String         @default("analyste")
   last_login     DateTime?
-  created_at     DateTime    @default(now())
-  institution    Institution @relation(fields: [institution_id], references: [id])
+  created_at     DateTime       @default(now())
+  institution    Institution    @relation(fields: [institution_id], references: [id])
+  notifications  Notification[]
 }
 
 model Dossier {
@@ -86,6 +88,45 @@ model ApiKey {
   expires_at     DateTime?
   created_at     DateTime    @default(now())
   institution    Institution @relation(fields: [institution_id], references: [id])
+}
+
+enum NotificationType {
+  ANALYSE_TERMINEE
+  ANALYSE_ECHOUEE
+  ALERTE_CRITIQUE
+  RAPPORT_PRET
+  DOSSIER_SUPPRIME
+  TRIAL_EXPIRE_7J
+  TRIAL_EXPIRE_3J
+  TRIAL_EXPIRE_1J
+  TRIAL_EXPIRE
+  LIMITE_80
+  LIMITE_100
+  MEMBRE_REJOINT
+  ROLE_MODIFIE
+  COMPTE_DESACTIVE
+  NOUVELLE_IP
+  API_KEY_EXPIRE_7J
+  API_KEY_PREMIERE_UTILISATION
+}
+
+model Notification {
+  id             String           @id @default(cuid())
+  user_id        String
+  institution_id String
+  type           NotificationType
+  title          String
+  message        String
+  metadata       Json             @default("{}")
+  is_read        Boolean          @default(false)
+  email_sent     Boolean          @default(false)
+  created_at     DateTime         @default(now())
+
+  user           User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  institution    Institution      @relation(fields: [institution_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id, is_read])
+  @@index([institution_id, created_at])
 }
 
 model AuditLog {

@@ -97,24 +97,6 @@ export function Sidebar({ onClose, collapsed = false, onToggleCollapse, onOpenPr
               <p className="text-[10px] text-muted-foreground leading-none mt-0.5">Analyse Business Plans</p>
             </div>
           )}
-          {/* Toggle button — desktop only */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={onToggleCollapse}
-                className="hidden lg:flex items-center justify-center p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0"
-                aria-label={collapsed ? 'Développer la sidebar' : 'Réduire la sidebar'}
-              >
-                {collapsed
-                  ? <PanelLeftOpen className="w-4 h-4" />
-                  : <PanelLeftClose className="w-4 h-4" />
-                }
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={8}>
-              {collapsed ? 'Développer' : 'Réduire'}
-            </TooltipContent>
-          </Tooltip>
         </div>
 
         {/* Institution */}
@@ -214,6 +196,33 @@ export function Sidebar({ onClose, collapsed = false, onToggleCollapse, onOpenPr
             })}
           </div>
         </nav>
+
+        {/* Toggle collapse — desktop only */}
+        <div className={cn('hidden lg:block border-t border-border', collapsed ? 'px-2 py-2' : 'px-3 py-2')}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onToggleCollapse}
+                aria-label={collapsed ? 'Développer la sidebar' : 'Réduire la sidebar'}
+                className={cn(
+                  'flex items-center w-full rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors',
+                  collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'
+                )}
+              >
+                {collapsed
+                  ? <PanelLeftOpen className="w-4 h-4 shrink-0" />
+                  : <>
+                      <PanelLeftClose className="w-4 h-4 shrink-0" />
+                      <span className="flex-1 font-medium">Réduire</span>
+                    </>
+                }
+              </button>
+            </TooltipTrigger>
+            {collapsed && (
+              <TooltipContent side="right" sideOffset={8}>Développer</TooltipContent>
+            )}
+          </Tooltip>
+        </div>
 
         {/* User dropdown */}
         <div className={cn('border-t border-border', collapsed ? 'px-2 py-3' : 'px-3 py-4')}>

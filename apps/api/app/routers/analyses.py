@@ -10,6 +10,7 @@ from sqlalchemy import select
 from app.core.database import get_db
 from app.core.config import settings
 from app.core.audit import log_action
+from app.core.notifications import trigger_notification
 from app.models.models import Dossier, Analyse, Institution
 from app.schemas.schemas import AnalyseResponse
 from app.services.llm_normalizer import normalize_with_llm
@@ -179,6 +180,22 @@ async def run_analyse(dossier_id: str, db: AsyncSession = Depends(get_db)):
             metadata={"dossier_id": dossier_id, "score": score, "tokens": tokens_used},
         )
 
+        # Fire-and-forget notifications
+        has_critical = any(a.get("criticite") == "critical" for a in [a.model_dump() for a in alertes])
+        await trigger_notification(
+            type="ANALYSE_TERMINEE",
+            institution_id=str(dossier.institution_id),
+            user_id=str(dossier.created_by),
+            metadata={"dossier_id": dossier_id, "dossier_nom": dossier.nom_projet, "score": score},
+        )
+        if has_critical:
+            await trigger_notification(
+                type="ALERTE_CRITIQUE",
+                institution_id=str(dossier.institution_id),
+                user_id=str(dossier.created_by),
+                metadata={"dossier_id": dossier_id, "dossier_nom": dossier.nom_projet},
+            )
+
         return {
             "id": str(analyse_row.id),
             "dossier_id": dossier_id,
@@ -193,6 +210,12 @@ async def run_analyse(dossier_id: str, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         dossier.statut = "erreur"
         await db.flush()
+        await trigger_notification(
+            type="ANALYSE_ECHOUEE",
+            institution_id=str(dossier.institution_id),
+            user_id=str(dossier.created_by),
+            metadata={"dossier_id": dossier_id, "dossier_nom": dossier.nom_projet},
+        )
         raise HTTPException(status_code=500, detail=f"Erreur d'analyse: {str(e)}")
 
 
