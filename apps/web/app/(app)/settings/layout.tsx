@@ -7,16 +7,18 @@ import { cn } from '@/lib/utils'
 const TABS = [
   { href: '/settings', label: 'Institution' },
   { href: '/settings/equipe', label: 'Équipe' },
-  { href: '/settings/api-keys', label: 'Clés API' },
 ]
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const isStandalone = pathname === '/settings/api-keys'
+
+  if (isStandalone) return <>{children}</>
 
   return (
     <div>
       <div className="border-b border-border px-6 lg:px-8">
-        <nav className="flex gap-1 -mb-px max-w-3xl mx-auto">
+        <nav className="flex gap-1 -mb-px">
           {TABS.map((tab) => {
             const active = tab.href === '/settings'
               ? pathname === '/settings'

@@ -59,7 +59,7 @@ export function DossierDetailPage({ params }: { params: Promise<{ id: string }> 
 
   if (error || !dossier) {
     return (
-      <div className="p-6 max-w-2xl mx-auto">
+      <div className="p-6">
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <AlertOctagon className="w-12 h-12 text-destructive mb-4" />
           <h2 className="text-lg font-semibold text-foreground mb-2">Dossier introuvable</h2>
@@ -80,7 +80,7 @@ export function DossierDetailPage({ params }: { params: Promise<{ id: string }> 
   const { analyse } = dossier
 
   return (
-    <div className="p-6 lg:p-8 max-w-5xl mx-auto">
+    <div className="p-6 lg:p-8">
       <div className="flex items-center justify-between mb-6 gap-4">
         <button
           onClick={() => router.back()}

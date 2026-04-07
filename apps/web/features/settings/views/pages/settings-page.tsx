@@ -107,7 +107,7 @@ export function SettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 lg:p-8 max-w-3xl mx-auto space-y-6">
+      <div className="p-6 lg:p-8 space-y-6">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="bg-card border border-border rounded-xl p-6 animate-pulse">
             <div className="flex gap-3 mb-5">
@@ -125,7 +125,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 max-w-3xl mx-auto">
+    <div className="p-6 lg:p-8">
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Paramètres</h1>

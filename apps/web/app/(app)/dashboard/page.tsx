@@ -3,12 +3,12 @@
 import { useState, useMemo } from 'react'
 import useSWR from 'swr'
 import { Search, Filter, FolderOpen, TrendingUp, Clock, CheckCircle2, Plus } from 'lucide-react'
-import Link from 'next/link'
 import { getDossiers } from '@/features/dossiers/services/dossier-service'
 import type { Dossier } from '@/lib/types'
 import { DossierCard } from '@/components/dossier-card'
 import { cn } from '@/lib/utils'
 import { useSession, organization } from '@/lib/auth-client'
+import { useImportModal } from '@/lib/import-modal-context'
 
 const STATUT_OPTIONS = [
   { value: 'all', label: 'Tous' },
@@ -49,6 +49,7 @@ export default function DashboardPage() {
   const [statutFilter, setStatutFilter] = useState<string>('all')
   const { data: session } = useSession()
   const { data: activeOrg } = useSWR('active-org', () => organization.getFullOrganization())
+  const { open: openImport } = useImportModal()
 
   const { data: dossiers, isLoading, error } = useSWR<Dossier[]>(
     'dossiers',
@@ -94,7 +95,7 @@ export default function DashboardPage() {
   })()
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
@@ -105,13 +106,13 @@ export default function DashboardPage() {
             {activeOrg?.data?.name ?? '…'} · Tableau de bord
           </p>
         </div>
-        <Link
-          href="/import"
+        <button
+          onClick={openImport}
           className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity shrink-0"
         >
           <Plus className="w-4 h-4" />
           Nouveau dossier
-        </Link>
+        </button>
       </div>
 
       {/* Stats */}
@@ -213,13 +214,13 @@ export default function DashboardPage() {
               : 'Modifiez vos critères de recherche ou de filtre.'}
           </p>
           {dossiers?.length === 0 && (
-            <Link
-              href="/import"
+            <button
+              onClick={openImport}
               className="mt-4 flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
             >
               <Plus className="w-4 h-4" />
               Importer un Business Plan
-            </Link>
+            </button>
           )}
         </div>
       ) : (

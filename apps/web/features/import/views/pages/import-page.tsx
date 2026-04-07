@@ -68,7 +68,7 @@ export function ImportPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 max-w-2xl mx-auto">
+    <div className="p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">Importer un Business Plan</h1>
         <p className="text-muted-foreground mt-1 text-sm">

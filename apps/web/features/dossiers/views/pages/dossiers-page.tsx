@@ -25,7 +25,7 @@ export function DossiersPage() {
   }, [dossiers, search, statutFilter])
 
   return (
-    <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="p-6 lg:p-8">
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Dossiers</h1>

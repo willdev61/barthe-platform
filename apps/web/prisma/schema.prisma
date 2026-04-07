@@ -21,6 +21,7 @@ model Institution {
   dossiers         Dossier[]
   users            User[]
   audit_logs       AuditLog[]
+  api_keys         ApiKey[]
 }
 
 model User {
@@ -71,6 +72,20 @@ model Rapport {
   pdf_url    String
   created_at DateTime @default(now())
   dossier    Dossier  @relation(fields: [dossier_id], references: [id])
+}
+
+model ApiKey {
+  id             String      @id @default(cuid())
+  institution_id String
+  nom            String
+  permissions    Json        @default("[]")
+  key_hash       String      @unique
+  key_prefix     String
+  is_active      Boolean     @default(true)
+  last_used_at   DateTime?
+  expires_at     DateTime?
+  created_at     DateTime    @default(now())
+  institution    Institution @relation(fields: [institution_id], references: [id])
 }
 
 model AuditLog {

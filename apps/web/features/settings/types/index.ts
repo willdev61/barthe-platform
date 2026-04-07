@@ -4,6 +4,7 @@ export type ApiKey = {
   id: string
   nom: string
   permissions: string[]
+  key_prefix: string
   last_used_at: string | null
   expires_at: string | null
   is_active: boolean

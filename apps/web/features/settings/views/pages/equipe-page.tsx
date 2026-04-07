@@ -80,14 +80,14 @@ export function EquipePage() {
 
   if (!orgId && !loading) {
     return (
-      <div className="p-6 lg:p-8 max-w-3xl mx-auto">
+      <div className="p-6 lg:p-8">
         <p className="text-sm text-muted-foreground">Aucune organisation active.</p>
       </div>
     )
   }
 
   return (
-    <div className="p-6 lg:p-8 max-w-3xl mx-auto">
+    <div className="p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground">Équipe</h1>
         <p className="text-muted-foreground mt-1 text-sm">Gérez les membres et les accès à votre institution</p>

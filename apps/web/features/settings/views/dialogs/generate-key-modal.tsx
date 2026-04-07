@@ -3,17 +3,16 @@
 import { useState } from 'react'
 import { X, Copy, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { createApiKey } from '../../services/api-keys-service'
+import { createApiKeyAction } from '../../actions/api-keys-action'
 
 const ALL_PERMISSIONS = ['analyses:read', 'analyses:write', 'dossiers:read']
 
 interface GenerateKeyModalProps {
-  token: string
   onClose: () => void
   onCreated: () => void
 }
 
-export function GenerateKeyModal({ token, onClose, onCreated }: GenerateKeyModalProps) {
+export function GenerateKeyModal({ onClose, onCreated }: GenerateKeyModalProps) {
   const [nom, setNom] = useState('')
   const [permissions, setPermissions] = useState<string[]>([...ALL_PERMISSIONS])
   const [loading, setLoading] = useState(false)
@@ -30,7 +29,7 @@ export function GenerateKeyModal({ token, onClose, onCreated }: GenerateKeyModal
     setLoading(true)
     setError('')
     try {
-      const data = await createApiKey(token, { nom: nom.trim(), permissions })
+      const data = await createApiKeyAction({ nom: nom.trim(), permissions })
       setGeneratedKey(data.key)
       onCreated()
     } catch (err) {
